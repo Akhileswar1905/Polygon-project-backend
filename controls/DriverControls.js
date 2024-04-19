@@ -4,8 +4,8 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const client = require("twilio")(
-  "ACfbd4dfea8b7f999c50aecc39b1090d19", // Twilio Account SID
-  "f19749be0865e62991952e7f1b9c109d" // Twilio Auth Token
+  process.env.ACCOUNT_SID, // Twilio Account SID
+  process.env.AUTH_TOKEN // Twilio Auth Token
 );
 
 // Get all drivers
@@ -92,7 +92,7 @@ const sendOTP = async (req, res) => {
     try {
       const message = await client.messages.create({
         body: `Your OTP is ${otp}`,
-        from: "+16562315788", // Twilio phone number
+        from: process.env.PHONE_NUMBER, // Twilio phone number
         to: phno, // Recipient phone number
       });
 
