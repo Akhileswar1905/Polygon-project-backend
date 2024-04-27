@@ -9,6 +9,7 @@ const {
   verifyOTP,
   updateContractDetails,
   updateTripDetails,
+  deleteAllDrivers,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);
@@ -33,6 +34,9 @@ router.put("/:id/contract", updateContractDetails);
 
 // Delete a driver
 router.delete("/:id", deleteDriver);
+
+// Delete all drivers
+router.delete("/", deleteAllDrivers);
 
 module.exports = router; // Export router for use in other files
 

@@ -5,8 +5,12 @@ const DriverSchema = new mongoose.Schema({
     type: "string",
     required: true,
   },
+  dob: {
+    type: "string",
+    required: true,
+  },
   phoneNumber: { type: "string", required: true },
-  email: { type: "string", required: true },
+  email: { type: "string", required: false },
   Aadhar: { type: "number", required: true },
   PAN: { type: "string", required: true },
   DrivingLicense: { type: "string", required: true },
@@ -17,9 +21,13 @@ const DriverSchema = new mongoose.Schema({
   },
   photo: {
     type: "string",
-    required: true,
+    required: false,
   },
   vehicleNumber: { type: "string", required: true },
+  vehicleRC: { type: "string", required: true },
+  vehicleModel: { type: "string", required: true },
+  vehiclePhotos: { type: "string", required: true },
+  vehicleVideo: { type: "string", required: true },
   tripDetails: {
     type: Array,
     default: [],
@@ -27,6 +35,10 @@ const DriverSchema = new mongoose.Schema({
   contractDetails: {
     type: Array,
     default: [],
+  },
+  controlPanel: {
+    type: "string",
+    required: false,
   },
 });
 

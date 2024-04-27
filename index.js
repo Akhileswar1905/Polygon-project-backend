@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const env = require("dotenv");
 const driverRouter = require("./routes/DriverRouter");
+const controlPanelRouter = require("./routes/ControlPanelRouter");
 const { default: mongoose } = require("mongoose");
 env.config();
 // App
@@ -11,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/driver", driverRouter);
-
+app.use("/cp", controlPanelRouter);
 // MongoDB Connection
 main().catch((err) => console.log(err));
 
@@ -24,11 +25,6 @@ app.get("/", (req, res) => {
     message: "Welcome to this API",
   });
 });
-
-// app.get("/users", authToken, (req, res) => {
-//   console.log(req.user);
-//   res.json(drivers.filter((driver) => driver.email === req.user.email));
-// });
 
 app.listen(5050, async (req, res) => {
   await mongoose.connect("mongodb://localhost:27017/");

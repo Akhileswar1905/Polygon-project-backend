@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const controlPanelScheme = new mongoose.Schema({
+const ControlPanelScheme = new mongoose.Schema({
   username: {
     type: String,
     required: true,
@@ -15,6 +15,6 @@ const controlPanelScheme = new mongoose.Schema({
   },
 });
 
-const controlPanel = mongoose.Model("controlPanel", controlPanelScheme);
+const ControlPanel = mongoose.model("ControlPanel", ControlPanelScheme);
 
-module.exports = controlPanel;
+module.exports = ControlPanel;

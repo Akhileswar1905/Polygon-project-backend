@@ -1,16 +1,14 @@
 const express = require("express");
 const Driver = require("../models/Driver");
-const router = express.Router();
 const jwt = require("jsonwebtoken");
+const OTP = require("../models/OTPSchema");
+const { ContentListInstance } = require("twilio/lib/rest/content/v1/content");
 require("dotenv").config();
-const client = require("twilio")(
-  process.env.ACCOUNT_SID, // Twilio Account SID
-  process.env.AUTH_TOKEN // Twilio Auth Token
-);
 
 // Get all drivers
 const getDriver = async (req, res) => {
   try {
+    console.log("getDriver");
     const persons = await Driver.find({});
     res.status(200).json(persons); // Respond with JSON data of all drivers
   } catch (error) {
@@ -31,8 +29,9 @@ const getDriverByID = async (req, res) => {
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
+    console.log(req.body);
     const person = await Driver.findByIdAndUpdate(req.params.id); // Find and update driver by ID
-    person.tripDetails.push(req.body.trip); // Add trip details
+    person.tripDetails.push(req.body); // Add trip details
     await person.save(); // Save changes
     res.status(200).json(person); // Respond with updated JSON data of the driver
   } catch (error) {
@@ -62,33 +61,54 @@ const deleteDriver = async (req, res) => {
   }
 };
 
+// Delete all Drivers
+const deleteAllDrivers = async (req, res) => {
+  try {
+    const person = await Driver.deleteMany({});
+    res.status(200).json(person); // Respond with JSON data of
+  } catch (error) {
+    res.status(500).send("Something went wrong. Please try again"); // Error
+  }
+};
+
 // -------------------------AUTHS --------------------------------------------------------
 // Sign up new driver
 const SignUp = async (req, res) => {
   try {
-    const existingUser = await Driver.findOne({
-      phoneNumber: req.body.phoneNumber,
-    });
+    console.log(req.body);
+    req.body.phoneNumber = "+91" + req.body.phoneNumber;
+    const user = await Driver.create(req.body); // Create new driver
+    console.log(user);
 
-    if (!existingUser) {
-      const user = await Driver.create(req.body); // Create new driver
-      console.log(user);
-      res.status(200).json(user); // Respond with JSON data of the new driver
-    } else {
-      res.status(401).json({ message: "User Already Exists" }); // User already exists
-    }
+    res.status(200).json(user); // Respond with JSON data of the
   } catch (error) {
+    console.log(error.message);
     res.status(500).send("Something went wrong. Please try again"); // Error handling
   }
 };
 
-let otp, phoneNumber;
-
 //  OTP Authentication
 const sendOTP = async (req, res) => {
+  console.log("sendOTP");
   try {
-    phno = req.body.phoneNumber; // Extract phone number from request
-    otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
+    console.log(req.body);
+    const client = require("twilio")(
+      process.env.ACCOUNT_SID, // Twilio Account SID
+      process.env.AUTH_TOKEN // Twilio Auth Token
+    );
+    console.log(client);
+    const phno = "+91" + req.body.phoneNumber; // Extract phone number from request
+    const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
+
+    if (!OTP.findOne({ phoneNumber: phno })) {
+      const sentOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
+    } else {
+      const sentOTP = await OTP.findOneAndUpdate({
+        OTP: otp,
+      });
+    }
+
+    console.log(otp);
     try {
       const message = await client.messages.create({
         body: `Your OTP is ${otp}`,
@@ -100,7 +120,6 @@ const sendOTP = async (req, res) => {
 
       res.status(200).json({ message: "OTP Sent" }); // Respond with success message
     } catch (error) {
-      console.log(error);
       res.status(500).json({ error: "Failed to send OTP" }); // Error handling
     }
   } catch (error) {
@@ -111,26 +130,26 @@ const sendOTP = async (req, res) => {
 // OTP Verification
 const verifyOTP = async (req, res) => {
   try {
-    if (req.body.otp === otp) {
+    const otp = await OTP.findOne({ phoneNumber: req.body.phoneNumber });
+    console.log(req.body);
+    console.log(otp);
+    if (parseInt(req.body.otp) === otp.OTP) {
       // Compare OTP
-      const existingUser = await Driver.findOne({ phoneNumber: phoneNumber }); // Find user by phone number
+      const existingUser = await Driver.findOne({
+        phoneNumber: req.body.phoneNumber,
+      }); // Find user by phone number
 
       if (existingUser) {
         console.log("User Exists");
-        const token = jwt.sign(
-          { userId: existingUser._id },
-          process.env.ACCESS_TOKEN_SECRET
-        );
+        const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
         res.json({ token: token, message: "Welcome Back User" });
       } else {
         console.log("New User");
-        const token = jwt.sign(
-          { phoneNumber: phoneNumber },
-          process.env.ACCESS_TOKEN_SECRET
-        );
+        const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
         res.json({ token: token, message: "Hello New User" });
       }
     } else {
+      console.log(parseInt(req.body.otp) === otp);
       res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     }
   } catch (error) {
@@ -148,4 +167,5 @@ module.exports = {
   verifyOTP,
   updateContractDetails,
   updateTripDetails,
+  deleteAllDrivers,
 };
