@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
 });
 
 app.listen(process.env.PORT || 5050, async (req, res) => {
-  await mongoose.connect("mongodb://localhost:27017/");
+  await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/");
   console.log("Server listening on http://localhost:5050");
 });
 
