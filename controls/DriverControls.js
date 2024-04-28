@@ -116,7 +116,7 @@ const sendOTP = async (req, res) => {
         to: phno, // Recipient phone number
       });
 
-      console.log(`Message SID ${message.sid}`); // Log message SID
+      console.log(`Phno: ${phno} and Message SID: ${message.sid}`); // Log message SID
 
       res.status(200).json({ message: "OTP Sent" }); // Respond with success message
     } catch (error) {
