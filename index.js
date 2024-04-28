@@ -6,6 +6,7 @@ const env = require("dotenv");
 const driverRouter = require("./routes/DriverRouter");
 const controlPanelRouter = require("./routes/ControlPanelRouter");
 const { default: mongoose } = require("mongoose");
+const OTProuter = require("./routes/OTPRoute");
 env.config();
 // App
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(cors());
 app.use("/driver", driverRouter);
 app.use("/cp", controlPanelRouter);
+app.use("/otp", OTProuter);
 // MongoDB Connection
 main().catch((err) => console.log(err));
 
