@@ -106,9 +106,8 @@ const sendOTP = async (req, res) => {
         OTP: otp,
       });
     }
-    OTP.save();
-
-    console.log(sendOTP);
+    const user = await OTP.findOne({ phoneNumber: phno });
+    console.log(user);
     try {
       const message = await client.messages.create({
         body: `Your OTP is ${otp}`,
