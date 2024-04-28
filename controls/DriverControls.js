@@ -130,7 +130,9 @@ const sendOTP = async (req, res) => {
 // OTP Verification
 const verifyOTP = async (req, res) => {
   try {
-    const otp = await OTP.findOne({ phoneNumber: req.body.phoneNumber });
+    const otp = await OTP.findOne({
+      phoneNumber: "+91" + req.body.phoneNumber,
+    });
     console.log(req.body);
     console.log(otp);
     if (parseInt(req.body.OTP) === otp.OTP) {
