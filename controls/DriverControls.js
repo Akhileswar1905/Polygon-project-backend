@@ -133,7 +133,7 @@ const verifyOTP = async (req, res) => {
     const otp = await OTP.findOne({ phoneNumber: req.body.phoneNumber });
     console.log(req.body);
     console.log(otp);
-    if (parseInt(req.body.otp) === otp.OTP) {
+    if (parseInt(req.body.OTP) === otp.OTP) {
       // Compare OTP
       const existingUser = await Driver.findOne({
         phoneNumber: req.body.phoneNumber,
