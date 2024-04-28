@@ -100,9 +100,9 @@ const sendOTP = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
     let sendOTP;
     if (!OTP.findOne({ phoneNumber: phno })) {
-      sentOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
+      sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
     } else {
-      sentOTP = await OTP.findOneAndUpdate({
+      sendOTP = await OTP.findOneAndUpdate({
         OTP: otp,
       });
     }
