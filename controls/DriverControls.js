@@ -99,7 +99,8 @@ const sendOTP = async (req, res) => {
     const phno = "+91" + req.body.phoneNumber; // Extract phone number from request
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
     let sendOTP;
-    if (!OTP.findOne({ phoneNumber: phno })) {
+    const user = await OTP.findOne({ phoneNumber: phno });
+    if (!user) {
       console.log("New");
       sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
     } else {
@@ -108,7 +109,6 @@ const sendOTP = async (req, res) => {
         OTP: otp,
       });
     }
-    const user = await OTP.findOne({ phoneNumber: phno });
     console.log(user);
     try {
       const message = await client.messages.create({
