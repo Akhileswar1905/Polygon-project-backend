@@ -96,33 +96,33 @@ const sendOTP = async (req, res) => {
       process.env.ACCOUNT_SID, // Twilio Account SID
       process.env.AUTH_TOKEN // Twilio Auth Token
     );
-    console.log(client);
     const phno = "+91" + req.body.phoneNumber; // Extract phone number from request
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
-
+    let sendOTP;
     if (!OTP.findOne({ phoneNumber: phno })) {
-      const sentOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
+      sentOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
     } else {
-      const sentOTP = await OTP.findOneAndUpdate({
+      sentOTP = await OTP.findOneAndUpdate({
         OTP: otp,
       });
     }
 
-    console.log(otp);
+    console.log(sendOTP);
     try {
       const message = await client.messages.create({
         body: `Your OTP is ${otp}`,
         from: process.env.PHONE_NUMBER, // Twilio phone number
         to: phno, // Recipient phone number
       });
-
       console.log(`Phno: ${phno} and Message SID: ${message.sid}`); // Log message SID
 
       res.status(200).json({ message: "OTP Sent" }); // Respond with success message
     } catch (error) {
+      console.log(error.message);
       res.status(500).json({ error: "Failed to send OTP" }); // Error handling
     }
   } catch (error) {
+    console.log(error.message);
     res.status(500).send("Something went wrong. Please try again"); // Error handling
   }
 };
