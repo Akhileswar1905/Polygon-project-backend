@@ -106,6 +106,7 @@ const sendOTP = async (req, res) => {
         OTP: otp,
       });
     }
+    OTP.save();
 
     console.log(sendOTP);
     try {
