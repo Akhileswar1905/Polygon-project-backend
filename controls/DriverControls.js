@@ -3,6 +3,7 @@ const Driver = require("../models/Driver");
 const jwt = require("jsonwebtoken");
 const OTP = require("../models/OTPSchema");
 const { ContentListInstance } = require("twilio/lib/rest/content/v1/content");
+const ControlPanel = require("../models/ControlPanel");
 require("dotenv").config();
 
 // Get all drivers
@@ -79,8 +80,12 @@ const SignUp = async (req, res) => {
     req.body.phoneNumber = "+91" + req.body.phoneNumber;
     const user = await Driver.create(req.body); // Create new driver
     console.log(user);
-
-    res.status(200).json(user); // Respond with JSON data of the
+    const cps = await ControlPanel.find({})
+    const cp = cps[Math.floor(Math.random()*cps.length)]
+    cp.drivers.push(user)
+    user.controlPanel = cp._id;
+    user.save();
+    res.status(200).json({"driver":user,"cp":cp}); // Respond with JSON data of the
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Something went wrong. Please try again"); // Error handling
