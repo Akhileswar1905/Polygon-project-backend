@@ -92,6 +92,7 @@ const SignUp = async (req, res) => {
   }
 };
 
+let otp;
 //  OTP Authentication
 const sendOTP = async (req, res) => {
   console.log("sendOTP");
@@ -102,7 +103,7 @@ const sendOTP = async (req, res) => {
       process.env.AUTH_TOKEN // Twilio Auth Token
     );
     const phno = req.body.phoneNumber; // Extract phone number from request
-    const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
+    otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
     let sendOTP;
     const user = await OTP.findOne({ phoneNumber: phno });
     if (!user) {
@@ -137,29 +138,22 @@ const sendOTP = async (req, res) => {
 // OTP Verification
 const verifyOTP = async (req, res) => {
   try {
-    const otp = await OTP.findOne({
-      phoneNumber: req.body.phoneNumber,
-    });
-    console.log(req.body);
-    console.log(otp);
-    if (parseInt(req.body.OTP) === otp.OTP) {
-      // Compare OTP
-      const existingUser = await Driver.findOne({
-        phoneNumber: req.body.phoneNumber,
-      }); // Find user by phone number
-
-      if (existingUser) {
-        console.log("User Exists");
+    const { phoneNumber } = req.body;
+    const rec = req.body.OTP;
+    const driver = await Driver.findOne({ phoneNumber: phoneNumber });
+    console.log(otp, rec);
+    if (driver) {
+      console.log("Exisiting User");
+      if (parseInt(rec) === otp) {
         const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
         res.json({ token: token, message: "Welcome Back User" });
-      } else {
+      } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
+    } else {
+      if (parseInt(rec) === otp) {
         console.log("New User");
         const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
         res.json({ token: token, message: "Hello New User" });
-      }
-    } else {
-      console.log(parseInt(req.body.otp) === otp);
-      res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
+      } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     }
   } catch (error) {
     console.error("Error:", error);

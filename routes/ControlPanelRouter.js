@@ -11,13 +11,21 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/signup",async(req,res)=>{
+router.post("/signup", async (req, res) => {
   try {
-    const user = await ControlPanel.create(req.body)
-    res.status(200).json(user)
+    const user = await ControlPanel.create(req.body);
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).send("Something went wrong");
   }
-})
+});
 
+router.delete("/", async (req, res) => {
+  try {
+    const cps = await ControlPanel.deleteMany({});
+    res.status(200).json(cps);
+  } catch (error) {
+    res.status(500).send("Something went wrong");
+  }
+});
 module.exports = router;
