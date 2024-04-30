@@ -112,6 +112,7 @@ const sendOTP = async (req, res) => {
       console.log("Existing");
       sendOTP = await OTP.findOne({ phoneNumber: "+91" + phno });
       sendOTP.OTP = otp;
+      sendOTP.save();
     }
     console.log(user);
     try {
