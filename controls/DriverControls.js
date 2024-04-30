@@ -80,12 +80,12 @@ const SignUp = async (req, res) => {
     req.body.phoneNumber = "+91" + req.body.phoneNumber;
     const user = await Driver.create(req.body); // Create new driver
     console.log(user);
-    const cps = await ControlPanel.find({})
-    const cp = cps[Math.floor(Math.random()*cps.length)]
-    cp.drivers.push(user)
+    const cps = await ControlPanel.find({});
+    const cp = cps[Math.floor(Math.random() * cps.length)];
+    cp.drivers.push(user);
     user.controlPanel = cp._id;
     user.save();
-    res.status(200).json({"driver":user,"cp":cp}); // Respond with JSON data of the
+    res.status(200).json({ driver: user, cp: cp }); // Respond with JSON data of the
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Something went wrong. Please try again"); // Error handling
@@ -104,7 +104,7 @@ const sendOTP = async (req, res) => {
     const phno = "+91" + req.body.phoneNumber; // Extract phone number from request
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
     let sendOTP;
-    const user = await OTP.findOne({ phoneNumber: phno });
+    const user = await OTP.findOne({ phoneNumber: "+91" + phno });
     if (!user) {
       console.log("New");
       sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
