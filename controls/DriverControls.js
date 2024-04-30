@@ -110,9 +110,8 @@ const sendOTP = async (req, res) => {
       sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
     } else {
       console.log("Existing");
-      sendOTP = await OTP.findOneAndUpdate({
-        OTP: otp,
-      });
+      sendOTP = await OTP.findOne({ phoneNumber: "+91" + phno });
+      sendOTP.OTP = otp;
     }
     console.log(user);
     try {
