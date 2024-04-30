@@ -12,4 +12,14 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Delete all otps
+router.delete("/", async (req, res) => {
+  try {
+    const otps = await OTP.deleteMany({});
+    res.status(200).json(otps); // Respond with JSON data of all
+  } catch (error) {
+    res.status(500).send("Something went wrong. Please try again");
+  }
+});
+
 module.exports = router;
