@@ -77,7 +77,7 @@ const deleteAllDrivers = async (req, res) => {
 const SignUp = async (req, res) => {
   try {
     console.log(req.body);
-    req.body.phoneNumber = "+91" + req.body.phoneNumber;
+    req.body.phoneNumber = req.body.phoneNumber;
     const user = await Driver.create(req.body); // Create new driver
     console.log(user);
     const cps = await ControlPanel.find({});
@@ -101,23 +101,23 @@ const sendOTP = async (req, res) => {
       process.env.ACCOUNT_SID, // Twilio Account SID
       process.env.AUTH_TOKEN // Twilio Auth Token
     );
-    const phno = "+91" + req.body.phoneNumber; // Extract phone number from request
+    const phno = req.body.phoneNumber; // Extract phone number from request
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
     let sendOTP;
-    const user = await OTP.findOne({ phoneNumber: "+91" + phno });
+    const user = await OTP.findOne({ phoneNumber: phno });
     if (!user) {
       console.log("New");
       sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
     } else {
       console.log("Existing");
-      sendOTP = await OTP.findOne({ phoneNumber: "+91" + phno });
+      sendOTP = await OTP.findOne({ phoneNumber: phno });
       sendOTP.OTP = otp;
       sendOTP.save();
     }
     console.log(user);
     try {
       const message = await client.messages.create({
-        body: `Your OTP is ${otp}`,
+        body: `OTP is ${otp} send to ${phno} `,
         from: process.env.PHONE_NUMBER, // Twilio phone number
         to: phno, // Recipient phone number
       });
@@ -138,7 +138,7 @@ const sendOTP = async (req, res) => {
 const verifyOTP = async (req, res) => {
   try {
     const otp = await OTP.findOne({
-      phoneNumber: "+91" + req.body.phoneNumber,
+      phoneNumber: req.body.phoneNumber,
     });
     console.log(req.body);
     console.log(otp);
