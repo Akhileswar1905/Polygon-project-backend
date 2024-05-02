@@ -13,6 +13,10 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  tripDetails: {
+    type: Array,
+    default: [],
+  },
 });
 
 const ControlPanel = mongoose.model("ControlPanel", ControlPanelScheme);

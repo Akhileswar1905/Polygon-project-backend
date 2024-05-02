@@ -13,7 +13,7 @@ const getDriver = async (req, res) => {
     const persons = await Driver.find({});
     res.status(200).json(persons); // Respond with JSON data of all drivers
   } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -23,32 +23,25 @@ const getDriverByID = async (req, res) => {
     const person = await Driver.findById(req.params.id); // Find driver by ID
     res.status(200).json(person); // Respond with JSON data of the driver
   } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
-    console.log(req.body);
-    const person = await Driver.findByIdAndUpdate(req.params.id); // Find and update driver by ID
-    person.tripDetails.push(req.body); // Add trip details
+    // Updating driver document
+    const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
+    person.tripDetails.push({
+      tripID: req.body.tripID,
+      tripDate: req.body.tripDate,
+      tripPayment: "pending",
+    }); // Add trip details
     await person.save(); // Save changes
     res.status(200).json(person); // Respond with updated JSON data of the driver
   } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
-  }
-};
-
-// Update Contract Details
-const updateContractDetails = async (req, res) => {
-  try {
-    const person = await Driver.findByIdAndUpdate(req.params.id); // Find and update driver by ID
-    person.contractDetails.push(req.body.contract); // Add contract details
-    await person.save(); // Save changes
-    res.status(200).json(person); // Respond with updated JSON data of the driver
-  } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    console.log(error);
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -58,7 +51,7 @@ const deleteDriver = async (req, res) => {
     const person = await Driver.findByIdAndDelete(req.params.id); // Find and delete driver by ID
     res.status(200).json(person); // Respond with JSON data of the deleted driver
   } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -68,7 +61,7 @@ const deleteAllDrivers = async (req, res) => {
     const person = await Driver.deleteMany({});
     res.status(200).json(person); // Respond with JSON data of
   } catch (error) {
-    res.status(500).send("Something went wrong. Please try again"); // Error
+    res.status(500).send("Error occurred " + error.message); // Error
   }
 };
 
@@ -82,13 +75,20 @@ const SignUp = async (req, res) => {
     console.log(user);
     const cps = await ControlPanel.find({});
     const cp = cps[Math.floor(Math.random() * cps.length)];
-    cp.drivers.push(user);
+    cp.drivers.push({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      name: user.name,
+      email: user.email,
+      vehicle: user.vehicleNumber,
+    });
     user.controlPanel = cp._id;
     user.save();
+    cp.save();
     res.status(200).json({ driver: user, cp: cp }); // Respond with JSON data of the
   } catch (error) {
     console.log(error.message);
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -127,11 +127,11 @@ const sendOTP = async (req, res) => {
       res.status(200).json({ message: "OTP Sent" }); // Respond with success message
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: "Failed to send OTP" }); // Error handling
+      res.status(500).send("Error occurred " + error.message); // Error handling
     }
   } catch (error) {
     console.log(error.message);
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -156,8 +156,7 @@ const verifyOTP = async (req, res) => {
       } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     }
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Something went wrong. Please try again" }); // Error handling
+    res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
 
@@ -168,7 +167,6 @@ module.exports = {
   getDriverByID,
   sendOTP,
   verifyOTP,
-  updateContractDetails,
   updateTripDetails,
   deleteAllDrivers,
 };

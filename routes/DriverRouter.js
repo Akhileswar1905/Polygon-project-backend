@@ -27,10 +27,7 @@ router.post("/auth/verify", verifyOTP);
 router.get("/:id", getDriverByID);
 
 // Update trip details for a driver
-router.put("/:id/trip", updateTripDetails);
-
-// Update contract details for a driver
-router.put("/:id/contract", updateContractDetails);
+router.put("/trip", updateTripDetails);
 
 // Delete a driver
 router.delete("/:id", deleteDriver);
