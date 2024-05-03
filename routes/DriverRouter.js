@@ -10,6 +10,7 @@ const {
   updateContractDetails,
   updateTripDetails,
   deleteAllDrivers,
+  getDriverByPhoneNumber,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);
