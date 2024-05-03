@@ -33,6 +33,7 @@ const getDriverByPhoneNumber = async (req, res) => {
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find driver by phone number
     res.status(200).json(person); // Respond with JSON data of the driver
   } catch (error) {
+    console.log(error.message);
     res.status(500).send("Error occurred " + error.message); // Error handling
   }
 };
