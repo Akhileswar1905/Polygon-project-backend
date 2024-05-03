@@ -27,7 +27,7 @@ router.post("/auth/verify", verifyOTP);
 router.get("/:id", getDriverByID);
 
 // Get driver by phoneNumber
-router.get("/driver", getDriverByPhoneNumber);
+router.get("/get", getDriverByPhoneNumber);
 // Update trip details for a driver
 router.put("/trip", updateTripDetails);
 
