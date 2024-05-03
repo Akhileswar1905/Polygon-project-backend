@@ -17,20 +17,12 @@ const getDriver = async (req, res) => {
   }
 };
 
-// Get driver by ID
-const getDriverByID = async (req, res) => {
-  try {
-    const person = await Driver.findById(req.params.id); // Find driver by ID
-    res.status(200).json(person); // Respond with JSON data of the driver
-  } catch (error) {
-    res.status(500).send("Error occurred " + error.message); // Error handling
-  }
-};
-
 // Get driver by phone number
 const getDriverByPhoneNumber = async (req, res) => {
   try {
-    const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find driver by phone number
+    const person = await Driver.findOne({
+      phoneNumber: req.params.phoneNumber,
+    }); // Find driver by phone number
     res.status(200).json(person); // Respond with JSON data of the driver
   } catch (error) {
     console.log(error.message);
@@ -183,7 +175,6 @@ module.exports = {
   getDriver,
   SignUp,
   deleteDriver,
-  getDriverByID,
   sendOTP,
   verifyOTP,
   updateTripDetails,
