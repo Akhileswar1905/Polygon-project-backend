@@ -146,13 +146,21 @@ const verifyOTP = async (req, res) => {
       console.log("Exisiting User");
       if (parseInt(rec) === otp) {
         const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
-        res.json({ token: token, message: "Welcome Back User" });
+        res.json({
+          token: token,
+          message: "Welcome Back User",
+          phoneNumber: phoneNumber,
+        });
       } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     } else {
       if (parseInt(rec) === otp) {
         console.log("New User");
         const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
-        res.json({ token: token, message: "Hello New User" });
+        res.json({
+          token: token,
+          message: "Hello New User",
+          phoneNumber: phoneNumber,
+        });
       } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     }
   } catch (error) {
