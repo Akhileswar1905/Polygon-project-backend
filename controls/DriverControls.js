@@ -27,6 +27,16 @@ const getDriverByID = async (req, res) => {
   }
 };
 
+// Get driver by phone number
+const getDriverByPhoneNumber = async (req, res) => {
+  try {
+    const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find driver by phone number
+    res.status(200).json(person); // Respond with JSON data of the driver
+  } catch (error) {
+    res.status(500).send("Error occurred " + error.message); // Error handling
+  }
+};
+
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
@@ -177,4 +187,5 @@ module.exports = {
   verifyOTP,
   updateTripDetails,
   deleteAllDrivers,
+  getDriverByPhoneNumber,
 };
