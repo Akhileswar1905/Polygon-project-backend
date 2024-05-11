@@ -105,6 +105,13 @@ let otp;
 const sendOTP = async (req, res) => {
   console.log("sendOTP");
   try {
+    const existing = await Driver.findOne({
+      phoneNumber: req.body.phoneNumber,
+    });
+    if (!existing) {
+      res.status(400).json({ message: "Driver does not exists" });
+    }
+
     console.log(req.body);
     const client = require("twilio")(
       process.env.ACCOUNT_SID, // Twilio Account SID
