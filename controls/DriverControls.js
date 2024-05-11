@@ -72,6 +72,11 @@ const deleteAllDrivers = async (req, res) => {
 // Sign up new driver
 const SignUp = async (req, res) => {
   try {
+    const existing = await Driver.findOne(req.body.phoneNumber);
+    if (existing) {
+      res.status(400).json({ message: "Driver already exists" });
+    }
+
     console.log(req.body);
     req.body.phoneNumber = req.body.phoneNumber;
     const user = await Driver.create(req.body); // Create new driver
