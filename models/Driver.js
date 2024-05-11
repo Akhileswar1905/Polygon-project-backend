@@ -24,8 +24,8 @@ const DriverSchema = new mongoose.Schema({
     required: false,
   },
   vehicleNumber: { type: "string", required: true },
-  vehicleRC: { type: "string", required: true },
-  vehicleModel: { type: "string", required: true },
+  vehicleRC: { type: "string", required: false },
+  vehicleModel: { type: "string", required: false },
   vehiclePhotos: { type: "string", required: true },
   vehicleVideo: { type: "string", required: true },
   tripDetails: {

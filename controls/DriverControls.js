@@ -81,7 +81,7 @@ const SignUp = async (req, res) => {
     cp.drivers.push({
       _id: user._id,
       phoneNumber: user.phoneNumber,
-      name: user.name,
+      name: user.username,
       email: user.email,
       vehicle: user.vehicleNumber,
     });
