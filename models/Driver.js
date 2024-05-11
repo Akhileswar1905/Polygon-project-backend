@@ -11,12 +11,12 @@ const DriverSchema = new mongoose.Schema({
   },
   phoneNumber: { type: "string", required: true },
   email: { type: "string", required: false },
-  Aadhar: { type: "number", required: true },
+  Aadhar: { type: "string", required: true },
   PAN: { type: "string", required: true },
   DrivingLicense: { type: "string", required: true },
   IFSC: { type: "string", required: true },
   AccNumber: {
-    type: "number",
+    type: "string",
     required: true,
   },
   photo: {
