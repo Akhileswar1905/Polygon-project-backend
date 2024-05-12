@@ -34,7 +34,7 @@ router.post("/contract", async (req, res) => {
   try {
     const user = await Driver.findById(req.body.driverId);
     user.contractDetails.push(req.body.contract);
-    user.currentContract = req.body.contractId;
+    user.currentContract = req.body.contract.contractId;
     user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
     res.status(200).json({ driver: user, ControlPanel: cp }); // Respond with updated JSON data of the driver
