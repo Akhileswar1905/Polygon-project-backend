@@ -40,6 +40,10 @@ const DriverSchema = new mongoose.Schema({
     type: "string",
     required: false,
   },
+  currentContract: {
+    type: "string",
+    required: false,
+  },
 });
 
 const Driver = mongoose.model("Driver", DriverSchema);

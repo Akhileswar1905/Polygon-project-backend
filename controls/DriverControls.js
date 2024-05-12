@@ -39,6 +39,7 @@ const updateTripDetails = async (req, res) => {
       tripID: req.body.tripID,
       tripDate: req.body.tripDate,
       tripPayment: "pending",
+      contract: "contract",
     }); // Add trip details
     await person.save(); // Save changes
     res.status(200).json(person); // Respond with updated JSON data of the driver

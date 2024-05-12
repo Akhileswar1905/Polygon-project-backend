@@ -33,7 +33,9 @@ router.delete("/", async (req, res) => {
 router.post("/contract", async (req, res) => {
   try {
     const user = await Driver.findById(req.body.driverId);
-    user.contractDetails(req.body.contract);
+    user.contractDetails.push(req.body.contract);
+    user.currentContract = req.body.contractId;
+    user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
     res.status(200).json({ driver: user, ControlPanel: cp }); // Respond with updated JSON data of the driver
   } catch (error) {
@@ -44,7 +46,7 @@ router.post("/contract", async (req, res) => {
 
 router.post("/payreq", async (req, res) => {
   try {
-    const admin = "o";
+    const admin = "admin";
   } catch (error) {
     res.status(500).send("Something went wrong");
   }
