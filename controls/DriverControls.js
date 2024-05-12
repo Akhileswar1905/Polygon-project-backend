@@ -36,7 +36,7 @@ const updateTripDetails = async (req, res) => {
   try {
     // Updating driver document
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
-    const id = await bcrypt.randomBytes();
+    const id = await crypto.randomUUID();
     person.tripDetails.push({
       tripID: id,
       tripDate: req.body.tripDate,
