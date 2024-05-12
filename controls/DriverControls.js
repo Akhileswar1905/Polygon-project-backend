@@ -1,6 +1,7 @@
 const express = require("express");
 const Driver = require("../models/Driver");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const OTP = require("../models/OTPSchema");
 const { ContentListInstance } = require("twilio/lib/rest/content/v1/content");
 const ControlPanel = require("../models/ControlPanel");
@@ -35,6 +36,7 @@ const updateTripDetails = async (req, res) => {
   try {
     // Updating driver document
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
+    const id = await bcrypt.randomBytes();
     person.tripDetails.push({
       tripID: req.body.tripID,
       tripDate: req.body.tripDate,
