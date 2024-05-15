@@ -126,6 +126,7 @@ const sendOTP = async (req, res) => {
           console.log("Wrong");
         } else {
           console.log("Success", options);
+          res.status(200).json(response);
         }
       })
       .catch((error) => {
