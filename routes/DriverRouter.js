@@ -11,6 +11,7 @@ const {
   updateTripDetails,
   deleteAllDrivers,
   getDriverByPhoneNumber,
+  outgoingCallerIds,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);

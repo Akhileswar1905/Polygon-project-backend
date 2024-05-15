@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const OTP = require("../models/OTPSchema");
 const { ContentListInstance } = require("twilio/lib/rest/content/v1/content");
 const ControlPanel = require("../models/ControlPanel");
+const fast2sms = require("fast-two-sms");
+
 require("dotenv").config();
 
 // Get all drivers
@@ -36,9 +38,9 @@ const updateTripDetails = async (req, res) => {
   try {
     // Updating driver document
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
-    const id = await crypto.randomUUID();
+    const id = crypto.randomUUID();
     person.tripDetails.push({
-      tripID: id,
+      tripID: req.body.tripId,
       tripDate: req.body.tripDate,
       tripTime: req.body.tripTime,
       tripPayment: "pending",
@@ -76,8 +78,6 @@ const deleteAllDrivers = async (req, res) => {
 // Sign up new driver
 const SignUp = async (req, res) => {
   try {
-    console.log(req.body);
-
     const existing = await Driver.findOne({
       phoneNumber: req.body.phoneNumber,
     });
@@ -85,7 +85,6 @@ const SignUp = async (req, res) => {
       res.status(400).json({ message: "Driver already exists" });
     }
 
-    req.body.phoneNumber = req.body.phoneNumber;
     const user = await Driver.create(req.body); // Create new driver
     console.log(user);
     const cps = await ControlPanel.find({});
@@ -107,50 +106,31 @@ const SignUp = async (req, res) => {
   }
 };
 
-let otp;
 //  OTP Authentication
+let otp;
 const sendOTP = async (req, res) => {
   console.log("sendOTP");
   try {
-    const existing = await Driver.findOne({
-      phoneNumber: req.body.phoneNumber,
-    });
-    if (!existing) {
-      res.status(400).json({ message: "Driver does not exists" });
-    }
+    otp = Math.floor(Math.random() * 9000) + 1000;
+    const options = {
+      authorization: process.env.OTP_Auth,
+      message: `Your OTP is: ${otp}`,
+      numbers: [req.body.phoneNumber],
+    };
+    fast2sms
+      .sendMessage(options)
+      .then((response) => {
+        console.log(response);
 
-    console.log(req.body);
-    const client = require("twilio")(
-      process.env.ACCOUNT_SID, // Twilio Account SID
-      process.env.AUTH_TOKEN // Twilio Auth Token
-    );
-    const phno = req.body.phoneNumber; // Extract phone number from request
-    otp = Math.floor(1000 + Math.random() * 9000); // Generate OTP
-    let sendOTP;
-    const user = await OTP.findOne({ phoneNumber: phno });
-    if (!user) {
-      console.log("New");
-      sendOTP = await OTP.create({ phoneNumber: phno, OTP: otp });
-    } else {
-      console.log("Existing");
-      sendOTP = await OTP.findOne({ phoneNumber: phno });
-      sendOTP.OTP = otp;
-      sendOTP.save();
-    }
-    console.log(user);
-    try {
-      const message = await client.messages.create({
-        body: `OTP is ${otp} send to ${phno} `,
-        from: process.env.PHONE_NUMBER, // Twilio phone number
-        to: phno, // Recipient phone number
+        if (response) {
+          console.log("Wrong");
+        } else {
+          console.log("Success", options);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
       });
-      console.log(`Phno: ${phno} and Message SID: ${message.sid}`); // Log message SID
-
-      res.status(200).json({ message: "OTP Sent" }); // Respond with success message
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).send("Error occurred " + error.message); // Error handling
-    }
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Error occurred " + error.message); // Error handling
@@ -172,6 +152,7 @@ const verifyOTP = async (req, res) => {
           token: token,
           message: "Welcome Back User",
           phoneNumber: phoneNumber,
+          driver: driver,
         });
       } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
     } else {

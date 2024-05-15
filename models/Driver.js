@@ -44,6 +44,10 @@ const DriverSchema = new mongoose.Schema({
     type: "string",
     required: false,
   },
+  earnings: {
+    type: Array,
+    required: false,
+  },
 });
 
 const Driver = mongoose.model("Driver", DriverSchema);
