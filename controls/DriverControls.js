@@ -122,12 +122,12 @@ const sendOTP = async (req, res) => {
       .then((response) => {
         console.log(response);
 
-        if (response) {
+        if (!response) {
           console.log("Wrong");
-        } else {
-          console.log("Success", options);
-          res.status(200).json(response);
+          res.status(400).json({ message: "OTP not sent" });
         }
+        console.log("Success", options);
+        res.status(200).json("OTP Send Successfully");
       })
       .catch((error) => {
         console.log(error);
