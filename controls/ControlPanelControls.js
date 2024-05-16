@@ -2,6 +2,7 @@ const express = require("express");
 const ControlPanel = require("../models/ControlPanel");
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
+const Driver = require("../models/Driver");
 const getAllCps = async (req, res) => {
   try {
     const persons = await ControlPanel.find({});
