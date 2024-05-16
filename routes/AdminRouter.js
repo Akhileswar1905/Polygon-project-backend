@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
 // Sign Up
 router.post("/signup", async (req, res) => {
   try {
-    const hashPassword = bcrypt.hash(req.body.password);
+    const hashPassword = bcrypt.hashSync(req.body.password);
     const admin = await Admin.create({
       username: req.body.username,
       password: hashPassword,
