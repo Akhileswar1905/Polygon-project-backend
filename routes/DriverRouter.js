@@ -4,14 +4,11 @@ const {
   getDriver,
   SignUp,
   deleteDriver,
-  getDriverByID,
   sendOTP,
   verifyOTP,
-  updateContractDetails,
   updateTripDetails,
   deleteAllDrivers,
   getDriverByPhoneNumber,
-  outgoingCallerIds,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);

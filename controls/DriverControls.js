@@ -109,7 +109,7 @@ const SignUp = async (req, res) => {
 //  OTP Authentication
 let otp;
 const sendOTP = async (req, res) => {
-  console.log("sendOTP");
+  console.log("sendOTP", req.body);
   try {
     otp = Math.floor(Math.random() * 9000) + 1000;
     const options = {
@@ -117,24 +117,18 @@ const sendOTP = async (req, res) => {
       message: `Your OTP is: ${otp}`,
       numbers: [req.body.phoneNumber],
     };
-    fast2sms
-      .sendMessage(options)
-      .then((response) => {
-        console.log(response);
 
-        if (!response) {
-          console.log("Wrong");
-          return res.status(400).json({ message: "OTP not sent" });
-        }
-        console.log("Success", options);
-        res.status(200).json("OTP Send Successfully");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const response = await fast2sms.sendMessage(options);
+
+    if (!response || response.return === false) {
+      console.log("OTP not sent:", response);
+      return res.status(400).json({ message: "OTP not sent" });
+    }
+    console.log("Success", response);
+    res.status(200).json({ message: "OTP sent successfully" });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Error occurred " + error.message); // Error handling
+    console.error("Error occurred:", error.message);
+    res.status(500).json({ message: "Error occurred: " + error.message });
   }
 };
 
