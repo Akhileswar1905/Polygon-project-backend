@@ -18,11 +18,13 @@ const Signup = async (req, res) => {
     req.body.password = hashPassword;
     const user = await ControlPanel.create(req.body);
     const admin = await Admin.find({});
-    admin.controlPanels.push({
+    console.log(admin[0]);
+    const adm = admin[0];
+    adm.controlPanels.push({
       _id: user._id,
       name: user.username,
     });
-    await admin.save();
+    await adm.save();
     res.status(200).json(user);
   } catch (error) {
     res.status(500).send(error.message);
