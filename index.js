@@ -5,6 +5,7 @@ const cors = require("cors");
 const env = require("dotenv");
 const driverRouter = require("./routes/DriverRouter");
 const controlPanelRouter = require("./routes/ControlPanelRouter");
+const adminRouter = require("./routes/AdminRouter");
 const { default: mongoose } = require("mongoose");
 const OTProuter = require("./routes/OTPRoute");
 env.config();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use("/driver", driverRouter);
 app.use("/cp", controlPanelRouter);
 app.use("/otp", OTProuter);
+app.use("/admin", adminRouter);
 // MongoDB Connection
 main().catch((err) => console.log(err));
 
