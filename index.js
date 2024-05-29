@@ -8,6 +8,9 @@ const controlPanelRouter = require("./routes/ControlPanelRouter");
 const adminRouter = require("./routes/AdminRouter");
 const { default: mongoose } = require("mongoose");
 const OTProuter = require("./routes/OTPRoute");
+const Admin = require("./models/Admin");
+const ControlPanel = require("./models/ControlPanel");
+const bcrypt = require("bcrypt");
 env.config();
 // App
 const app = express();
@@ -28,6 +31,28 @@ app.get("/", (req, res) => {
   res.json({
     message: "Welcome to this API",
   });
+});
+
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const admin = await Admin.find({ username: username });
+    const cp = await ControlPanel.find({ username: username });
+    if (admin.length > 0) {
+      if (bcrypt.compareSync(password, admin[0].password)) {
+        res.status(200).json(admin[0]);
+      }
+    } else if (cp.length > 0) {
+      if (bcrypt.compareSync(password, cp[0].password)) {
+        res.status(200).json(cp[0]);
+      }
+    } else {
+      res.status(400).send("Invalid credentials");
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(`Error: ${error.message}`);
+  }
 });
 
 app.listen(process.env.PORT || 5050, async (req, res) => {

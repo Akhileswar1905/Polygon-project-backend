@@ -3,13 +3,23 @@ const ControlPanel = require("../models/ControlPanel");
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
+
 const getAllCps = async (req, res) => {
   try {
     const persons = await ControlPanel.find({});
 
     res.status(200).json(persons);
   } catch (error) {
-    res.status(500).send("Something went wrong");
+    res.status(500).send(error.message);
+  }
+};
+
+const getCP = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findById(req.params.id);
+    res.status(200).json(cp);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
 
@@ -21,10 +31,7 @@ const Signup = async (req, res) => {
     const admin = await Admin.find({});
     console.log(admin[0]);
     const adm = admin[0];
-    adm.controlPanels.push({
-      _id: user._id,
-      name: user.username,
-    });
+    adm.controlPanels.push(user);
     await adm.save();
     res.status(200).json(user);
   } catch (error) {
@@ -56,7 +63,48 @@ const deleteCps = async (req, res) => {
     const cps = await ControlPanel.deleteMany({});
     res.status(200).json(cps);
   } catch (error) {
-    res.status(500).send("Something went wrong");
+    res.status(500).send(error.message);
+  }
+};
+
+const acceptDriver = async (req, res) => {
+  try {
+    const { id } = req.body;
+    console.log(id);
+    const user = await Driver.findById(id);
+
+    user.requestStatus = "accepted";
+    await user.save();
+    const cp = await ControlPanel.findById(user.controlPanel);
+    cp.requests = cp.requests.filter(
+      (request) => String(request._id) !== String(user._id)
+    );
+
+    await cp.save();
+    cp.drivers.push(user);
+    await cp.save();
+    res.status(200).json({ driver: user, ControlPanel: cp });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+};
+
+const rejectDriver = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const user = await Driver.findById(id);
+    user.requestStatus = "rejected";
+    await user.save();
+    const cp = await ControlPanel.findById(user.controlPanel);
+    cp.requests = cp.requests.filter(
+      (request) => String(request._id) !== String(user._id)
+    );
+    await cp.save();
+    res.status(200).json({ driver: user, ControlPanel: cp });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
   }
 };
 
@@ -70,7 +118,7 @@ const assignContract = async (req, res) => {
     res.status(200).json({ driver: user, ControlPanel: cp }); // Respond with updated JSON data of the driver
   } catch (error) {
     console.error(error);
-    res.status(500).send("Something went wrong. Please try again"); // Error handling
+    res.status(500).send(error.message); // Error handling
   }
 };
 
@@ -112,8 +160,11 @@ const payRequest = async (req, res) => {
 
 module.exports = {
   getAllCps,
+  getCP,
   Signup,
   Login,
+  acceptDriver,
+  rejectDriver,
   deleteCps,
   assignContract,
   generateReport,

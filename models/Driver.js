@@ -10,7 +10,7 @@ const DriverSchema = new mongoose.Schema({
     required: true,
   },
   phoneNumber: { type: "string", required: true },
-  email: { type: "string", required: false },
+  email: { type: "string", required: true },
   Aadhar: { type: "string", required: true },
   PAN: { type: "string", required: true },
   DrivingLicense: { type: "string", required: true },
@@ -21,10 +21,10 @@ const DriverSchema = new mongoose.Schema({
   },
   photo: {
     type: "string",
-    required: false,
+    required: true,
   },
-  vehicleNumber: { type: "string", required: true },
-  vehicleRC: { type: "string", required: false },
+  vehicleNumber: { type: "string", required: false },
+  vehicleRC: { type: "string", required: true },
   vehicleModel: { type: "string", required: false },
   vehiclePhotos: { type: "string", required: true },
   vehicleVideo: { type: "string", required: true },
@@ -47,6 +47,11 @@ const DriverSchema = new mongoose.Schema({
   earnings: {
     type: Array,
     required: false,
+  },
+  requestStatus: {
+    type: "string",
+    required: false,
+    default: "pending",
   },
 });
 

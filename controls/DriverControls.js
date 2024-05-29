@@ -33,12 +33,46 @@ const getDriverByPhoneNumber = async (req, res) => {
   }
 };
 
+// Get driver by name
+const getDriverByName = async (req, res) => {
+  console.log("params", req.params);
+  try {
+    // Check if the username parameter is provided
+    if (req.params.username) {
+      // Create a case-insensitive regex from the username parameter
+      const regex = new RegExp(`^${req.params.username}$`, "i");
+
+      // Find driver by username using the constructed regex
+      const person = await Driver.findOne({ username: regex });
+
+      // Check if a driver was found
+      if (!person) {
+        return res.status(404).json({ message: "Driver not found" });
+      }
+
+      // Respond with JSON data of the driver
+      res.status(200).json(person);
+    } else {
+      // If username parameter is not provided, fetch all drivers
+      const allDrivers = await Driver.find({});
+
+      // Respond with JSON data of all drivers
+      res.status(200).json(allDrivers);
+    }
+  } catch (error) {
+    // Log the error message
+    console.error(error.message);
+
+    // Respond with a 500 status code and error message
+    res.status(500).json({ error: "Error occurred: " + error.message });
+  }
+};
+
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
     // Updating driver document
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
-    const id = crypto.randomUUID();
     person.tripDetails.push({
       tripID: req.body.tripId,
       tripDate: req.body.tripDate,
@@ -89,16 +123,10 @@ const SignUp = async (req, res) => {
     console.log(user);
     const cps = await ControlPanel.find({});
     const cp = cps[Math.floor(Math.random() * cps.length)];
-    cp.drivers.push({
-      _id: user._id,
-      phoneNumber: user.phoneNumber,
-      name: user.username,
-      email: user.email,
-      vehicle: user.vehicleNumber,
-    });
+    cp.requests.push(user);
     user.controlPanel = cp._id;
-    user.save();
-    cp.save();
+    await user.save();
+    await cp.save();
     res.status(200).json({ driver: user, cp: cp }); // Respond with JSON data of the
   } catch (error) {
     console.log(error.message);
@@ -111,6 +139,16 @@ let otp;
 const sendOTP = async (req, res) => {
   console.log("sendOTP", req.body);
   try {
+    const phoneNumber = req.body.phoneNumber;
+    const user = await Driver.findOne({ phoneNumber: phoneNumber });
+    if (user.requestStatus === "pending") {
+      return res.status(400).json({ message: "Request Pending" });
+    }
+
+    if (user.requestStatus === "rejected") {
+      return res.status(400).json({ message: "Request Rejected" });
+    }
+
     otp = Math.floor(Math.random() * 9000) + 1000;
     const options = {
       authorization: process.env.OTP_Auth,
@@ -119,13 +157,17 @@ const sendOTP = async (req, res) => {
     };
 
     const response = await fast2sms.sendMessage(options);
-
+    console.log("Response: ", response);
     if (!response || response.return === false) {
       console.log("OTP not sent:", response);
-      return res.status(400).json({ message: "OTP not sent" });
+      return res.status(400).json({ message: error.message });
     }
     console.log("Success", response);
-    res.status(200).json({ message: "OTP sent successfully" });
+    const otpreq = await OTP.create({
+      phoneNumber: req.body.phoneNumber,
+      OTP: otp,
+    });
+    res.status(200).json({ message: "OTP sent successfully", id: otpreq._id });
   } catch (error) {
     console.error("Error occurred:", error.message);
     res.status(500).json({ message: "Error occurred: " + error.message });
@@ -135,31 +177,24 @@ const sendOTP = async (req, res) => {
 // OTP Verification
 const verifyOTP = async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
-    const rec = req.body.OTP;
-    const driver = await Driver.findOne({ phoneNumber: phoneNumber });
-    console.log(otp, rec);
-    if (driver) {
-      console.log("Exisiting User");
-      if (parseInt(rec) === otp) {
+    const { phoneNumber, OTP, id } = req.body;
+    const otpreq = await OTP.findById(id);
+    const driver = await Driver.find({ phoneNumber: otpreq.phoneNumber });
+    if (parseInt(OTP) === otpreq.OTP) {
+      if (driver) {
         const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
-        res.json({
+        res.status(200).json({
           token: token,
-          message: "Welcome Back User",
+          message: "Hello User",
           phoneNumber: phoneNumber,
-          driver: driver,
         });
-      } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
+      } else {
+        res
+          .status(401)
+          .json({ message: "Unauthorized Request: User does not exists" });
+      }
     } else {
-      if (parseInt(rec) === otp) {
-        console.log("New User");
-        const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
-        res.json({
-          token: token,
-          message: "Hello New User",
-          phoneNumber: phoneNumber,
-        });
-      } else res.status(401).json({ message: "Invalid OTP" }); // Invalid OTP
+      res.status(400).json({ message: "Invalid OTP" });
     }
   } catch (error) {
     res.status(500).send("Error occurred " + error.message); // Error handling
@@ -175,4 +210,5 @@ module.exports = {
   updateTripDetails,
   deleteAllDrivers,
   getDriverByPhoneNumber,
+  getDriverByName,
 };

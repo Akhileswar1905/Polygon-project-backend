@@ -25,6 +25,10 @@ const adminSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  isAdmin: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const Admin = mongoose.model("Admin", adminSchema);

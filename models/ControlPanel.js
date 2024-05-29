@@ -17,6 +17,14 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  requests: {
+    type: Array,
+    default: [],
+  },
+  contracts: {
+    type: Array,
+    default: [],
+  },
   tripDetails: {
     type: Array,
     default: [],

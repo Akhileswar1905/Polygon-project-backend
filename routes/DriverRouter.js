@@ -9,6 +9,7 @@ const {
   updateTripDetails,
   deleteAllDrivers,
   getDriverByPhoneNumber,
+  getDriverByName,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);
@@ -24,6 +25,9 @@ router.post("/auth/verify", verifyOTP);
 
 // Get driver by phoneNumber
 router.get("/:phoneNumber", getDriverByPhoneNumber);
+
+// Get driver by name
+router.get("/name/:username", getDriverByName);
 
 // Update trip details for a driver
 router.put("/trip", updateTripDetails);

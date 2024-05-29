@@ -10,14 +10,23 @@ const {
   generateReport,
   payRequest,
   Login,
+  getCP,
+  acceptDriver,
+  rejectDriver,
 } = require("../controls/ControlPanelControls");
 const router = express.Router();
 
 router.get("/", getAllCps);
 
+router.get("/:id", getCP);
+
 router.post("/signup", Signup);
 
 router.post("/login", Login);
+
+router.post("/accept", acceptDriver);
+
+router.post("/reject", rejectDriver);
 
 router.delete("/", deleteCps);
 
