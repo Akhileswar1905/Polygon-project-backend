@@ -142,11 +142,11 @@ const sendOTP = async (req, res) => {
     const phoneNumber = req.body.phoneNumber;
     const user = await Driver.findOne({ phoneNumber: phoneNumber });
     if (user.requestStatus === "pending") {
-      return res.status(400).json({ message: "Request Pending" });
+      return res.json({ message: "Request Pending" });
     }
 
     if (user.requestStatus === "rejected") {
-      return res.status(400).json({ message: "Request Rejected" });
+      return res.json({ message: "Request Rejected" });
     }
 
     otp = Math.floor(Math.random() * 9000) + 1000;
