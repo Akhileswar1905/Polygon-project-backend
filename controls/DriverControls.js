@@ -73,6 +73,7 @@ const updateTripDetails = async (req, res) => {
   try {
     // Updating driver document
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
+    console.log(person);
     person.tripDetails.push({
       tripID: req.body.tripId,
       tripDate: req.body.tripDate,

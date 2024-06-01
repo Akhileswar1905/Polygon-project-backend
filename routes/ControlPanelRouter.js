@@ -13,6 +13,7 @@ const {
   getCP,
   acceptDriver,
   rejectDriver,
+  createContract,
 } = require("../controls/ControlPanelControls");
 const router = express.Router();
 
@@ -31,6 +32,8 @@ router.post("/reject", rejectDriver);
 router.delete("/", deleteCps);
 
 router.post("/contract", assignContract);
+
+router.post("/create-contract", createContract);
 
 router.post("/generate-report/:id", generateReport);
 

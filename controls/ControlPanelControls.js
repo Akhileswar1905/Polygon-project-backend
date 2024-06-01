@@ -111,7 +111,12 @@ const rejectDriver = async (req, res) => {
 const createContract = async (req, res) => {
   try {
     const cp = await ControlPanel.findById(req.body.id);
-    const contract = req.body.contract;
+    const { companyId, companyName, duration } = req.body;
+    const contract = {
+      companyName: companyName,
+      duration: duration,
+      companyId: companyId,
+    };
     cp.contracts.push(contract);
     await cp.save();
     res.status(200).json(cp);
@@ -124,8 +129,15 @@ const createContract = async (req, res) => {
 const assignContract = async (req, res) => {
   try {
     const user = await Driver.findById(req.body.driverId);
-    user.contractDetails.push(req.body.contract);
-    user.currentContract = req.body.contract.contractId;
+    const { companyId, companyName, duration, payPerRide } = req.body;
+    const contract = {
+      companyName: companyName,
+      duration: duration,
+      companyId: companyId,
+      payPerRide: payPerRide,
+    };
+    user.contractDetails.push(contract);
+    user.currentContract = contract.companyId;
     await user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
     res.status(200).json({ driver: user, ControlPanel: cp }); // Respond with updated JSON data of the driver
@@ -182,6 +194,7 @@ module.exports = {
   acceptDriver,
   rejectDriver,
   deleteCps,
+  createContract,
   assignContract,
   generateReport,
   payRequest,
