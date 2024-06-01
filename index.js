@@ -38,16 +38,22 @@ app.post("/login", async (req, res) => {
   try {
     const admin = await Admin.find({ username: username });
     const cp = await ControlPanel.find({ username: username });
+    console.log(admin, cp);
     if (admin.length > 0) {
       if (bcrypt.compareSync(password, admin[0].password)) {
         res.status(200).json(admin[0]);
+      } else {
+        res.status(400).send("Invalid credentials");
       }
     } else if (cp.length > 0) {
+      console.log(bcrypt.compareSync(password, cp[0].password));
       if (bcrypt.compareSync(password, cp[0].password)) {
         res.status(200).json(cp[0]);
+      } else {
+        res.status(400).send("Invalid credentials");
       }
     } else {
-      res.status(400).send("Invalid credentials");
+      res.status(404).send("User not found");
     }
   } catch (error) {
     console.log(error.message);

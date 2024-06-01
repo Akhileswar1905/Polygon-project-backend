@@ -108,6 +108,19 @@ const rejectDriver = async (req, res) => {
   }
 };
 
+const createContract = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findById(req.body.id);
+    const contract = req.body.contract;
+    cp.contracts.push(contract);
+    await cp.save();
+    res.status(200).json(cp);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+};
+
 const assignContract = async (req, res) => {
   try {
     const user = await Driver.findById(req.body.driverId);
@@ -132,7 +145,10 @@ const generateReport = async (req, res) => {
         const pending = driver.tripDetails.filter(
           (trip) => trip.tripPayment === "pending"
         );
+        const id = crypto.randomUUID().toString();
         return {
+          id: id,
+          cpId: cp._id,
           driverName: item.username,
           vehicleNumber: item.vehicleNumber,
           pendingTrips: pending,
@@ -150,7 +166,7 @@ const generateReport = async (req, res) => {
 const payRequest = async (req, res) => {
   try {
     const admin = await Admin.find({});
-    admin.payoutDetails.push(req.body.details);
+    admin.payReqs.push(req.body.details);
     await admin.save();
   } catch (error) {
     console.log(error.message);

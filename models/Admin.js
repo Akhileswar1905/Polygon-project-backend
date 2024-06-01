@@ -13,15 +13,11 @@ const adminSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
-  payoutDetails: {
+  payReqs: {
     type: Array,
     default: [],
   },
-  payAuth: {
-    type: Boolean,
-    default: false,
-  },
-  payAuthDetails: {
+  payReps: {
     type: Array,
     default: [],
   },

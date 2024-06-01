@@ -135,38 +135,45 @@ const SignUp = async (req, res) => {
 };
 
 //  OTP Authentication
-let otp;
 const sendOTP = async (req, res) => {
-  console.log("sendOTP", req.body);
+  console.log("sendOTP request received:", req.body);
   try {
-    const phoneNumber = req.body.phoneNumber;
-    const user = await Driver.findOne({ phoneNumber: phoneNumber });
+    const { phoneNumber } = req.body;
+    const user = await Driver.findOne({ phoneNumber });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     if (user.requestStatus === "pending") {
-      return res.json({ message: "Request Pending" });
+      return res.status(400).json({ message: "Request Pending" });
     }
 
     if (user.requestStatus === "rejected") {
-      return res.json({ message: "Request Rejected" });
+      return res.status(400).json({ message: "Request Rejected" });
     }
 
-    otp = Math.floor(Math.random() * 9000) + 1000;
+    const otp = Math.floor(Math.random() * 9000) + 1000;
     const options = {
       authorization: process.env.OTP_Auth,
       message: `Your OTP is: ${otp}`,
-      numbers: [req.body.phoneNumber],
+      numbers: [phoneNumber],
     };
 
     const response = await fast2sms.sendMessage(options);
-    console.log("Response: ", response);
+    console.log("fast2sms response:", response);
+
     if (!response || response.return === false) {
-      console.log("OTP not sent:", response);
-      return res.status(400).json({ message: error.message });
+      return res
+        .status(500)
+        .json({ message: "OTP not sent", details: response });
     }
-    console.log("Success", response);
+
     const otpreq = await OTP.create({
-      phoneNumber: req.body.phoneNumber,
+      phoneNumber,
       OTP: otp,
     });
+
     res.status(200).json({ message: "OTP sent successfully", id: otpreq._id });
   } catch (error) {
     console.error("Error occurred:", error.message);
@@ -177,30 +184,36 @@ const sendOTP = async (req, res) => {
 // OTP Verification
 const verifyOTP = async (req, res) => {
   try {
-    const { phoneNumber, OTP, id } = req.body;
+    console.log("verifyOTP request received:", req.body);
+    const { phoneNumber, id, OTP: receivedOtp } = req.body;
+
     const otpreq = await OTP.findById(id);
-    const driver = await Driver.find({ phoneNumber: otpreq.phoneNumber });
-    if (parseInt(OTP) === otpreq.OTP) {
-      if (driver) {
-        const token = jwt.sign(req.body.phoneNumber, process.env.ACCESS_TOKEN);
-        res.status(200).json({
-          token: token,
-          message: "Hello User",
-          phoneNumber: phoneNumber,
-        });
-      } else {
-        res
-          .status(401)
-          .json({ message: "Unauthorized Request: User does not exists" });
-      }
+    if (!otpreq) {
+      return res.status(404).json({ message: "OTP request not found" });
+    }
+
+    const driver = await Driver.findOne({ phoneNumber: otpreq.phoneNumber });
+    if (!driver) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized Request: User does not exist" });
+    }
+
+    if (parseInt(receivedOtp) === otpreq.OTP) {
+      const token = jwt.sign({ phoneNumber }, process.env.ACCESS_TOKEN);
+      return res.status(200).json({
+        token,
+        message: "Hello User",
+        phoneNumber,
+      });
     } else {
-      res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ message: "Invalid OTP" });
     }
   } catch (error) {
-    res.status(500).send("Error occurred " + error.message); // Error handling
+    console.error("Error occurred:", error.message);
+    res.status(500).json({ message: "Error occurred: " + error.message });
   }
 };
-
 module.exports = {
   getDriver,
   SignUp,
