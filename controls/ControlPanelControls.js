@@ -72,10 +72,11 @@ const acceptDriver = async (req, res) => {
     const { id } = req.body;
     console.log(id);
     const user = await Driver.findById(id);
-
+    console.log(user);
     user.requestStatus = "accepted";
     await user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
+    console.log(user.controlPanel);
     cp.requests = cp.requests.filter(
       (request) => String(request._id) !== String(user._id)
     );
@@ -157,6 +158,7 @@ const generateReport = async (req, res) => {
         const pending = driver.tripDetails.filter(
           (trip) => trip.tripPayment === "pending"
         );
+
         const id = crypto.randomUUID().toString();
         return {
           id: id,

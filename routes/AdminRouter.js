@@ -47,9 +47,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Add Control Panel
-router.post("/addControlPanel", async (req, res) => {});
-
 // Authenticate Payment Requests
 router.post("/payAuth", async (req, res) => {});
 

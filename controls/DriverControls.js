@@ -80,6 +80,7 @@ const updateTripDetails = async (req, res) => {
       tripTime: req.body.tripTime,
       tripPayment: "pending",
       contract: req.body.contractId,
+      amount: req.body.payPerRide,
     }); // Add trip details
     await person.save(); // Save changes
     res.status(200).json(person); // Respond with updated JSON data of the driver
@@ -147,11 +148,11 @@ const sendOTP = async (req, res) => {
     }
 
     if (user.requestStatus === "pending") {
-      return res.status(400).json({ message: "Request Pending" });
+      return res.json({ message: "Request Pending" });
     }
 
     if (user.requestStatus === "rejected") {
-      return res.status(400).json({ message: "Request Rejected" });
+      return res.json({ message: "Request Rejected" });
     }
 
     const otp = Math.floor(Math.random() * 9000) + 1000;
