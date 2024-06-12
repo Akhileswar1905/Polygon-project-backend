@@ -19,33 +19,33 @@ const acceptReq = async (req, res) => {
 
     admin[0].payReps.push(request);
 
-    // update data of trip details of each driver to done or paid
+    // Update data of trip details of each driver to "Done" or "Paid"
     const data = request.data;
 
-    data.forEach(async (driver) => {
-      let pendingTripsIds = [];
-      driver.pendingTrips.forEach((trip) => {
-        pendingTripsIds.push(trip.tripID);
-      });
+    // Loop through each driver in the request
+    for (const driver of data) {
+      const pendingTripsIds = driver.pendingTrips.map((trip) => trip.tripID);
 
-      // Named driver as rider for avoiding the conflict
-      const rider = await Driver.find({ phoneNumber: driver.phoneNumber });
-      console.log(rider[0].username);
-      pendingTripsIds?.forEach(async (ride) => {
-        // console.log(ride);
-        rider[0].tripDetails.find((trip) => trip.tripID === ride).tripPayment =
-          "Done";
-        // console.log(trip);
-        rider[0].earnings.push({
+      // Update tripPayment for each pending trip of the driver
+      for (const ride of pendingTripsIds) {
+        await Driver.findOneAndUpdate(
+          { phoneNumber: driver.phoneNumber, "tripDetails.tripID": ride },
+          { $set: { "tripDetails.$.tripPayment": "Done" } }
+        );
+      }
+
+      // Update earnings for the driver
+      const rider = await Driver.findOne({ phoneNumber: driver.phoneNumber });
+      for (const ride of pendingTripsIds) {
+        const trip = rider.tripDetails.find((trip) => trip.tripID === ride);
+        rider.earnings.push({
           tripId: ride,
-          amount: parseInt(
-            rider[0].tripDetails.find((trip) => trip.tripID === ride).amount
-          ),
+          amount: parseInt(trip.amount),
+          tripDate: trip.tripDate,
         });
-      });
-
-      await rider[0].save();
-    });
+      }
+      await rider.save();
+    }
 
     await admin[0].save();
     res.status(200).json(request);
