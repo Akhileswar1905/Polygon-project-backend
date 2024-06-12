@@ -119,6 +119,7 @@ const SignUp = async (req, res) => {
     });
     if (existing) {
       res.status(400).json({ message: "Driver already exists" });
+      return;
     }
 
     const user = await Driver.create(req.body); // Create new driver
