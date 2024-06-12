@@ -14,6 +14,8 @@ const {
   acceptDriver,
   rejectDriver,
   createContract,
+  deleteReport,
+  deleteCpById,
 } = require("../controls/ControlPanelControls");
 const router = express.Router();
 
@@ -31,11 +33,15 @@ router.post("/reject", rejectDriver);
 
 router.delete("/", deleteCps);
 
+router.delete("/:id", deleteCpById);
+
 router.post("/contract", assignContract);
 
 router.post("/create-contract", createContract);
 
 router.post("/generate-report/:id", generateReport);
+
+router.delete("/delete-report/:id/:reportId", deleteReport);
 
 router.post("/payreq", payRequest);
 

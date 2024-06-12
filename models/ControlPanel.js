@@ -25,7 +25,7 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Array,
     default: [],
   },
-  tripDetails: {
+  reports: {
     type: Array,
     default: [],
   },

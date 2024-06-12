@@ -67,6 +67,22 @@ const deleteCps = async (req, res) => {
   }
 };
 
+const deleteCpById = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findByIdAndDelete(req.params.id);
+    const admin = await Admin.find({});
+    admin[0].controlPanels = admin[0].controlPanels.filter((cp) => {
+      return String(cp._id) !== String(req.params.id);
+    });
+    await admin[0].save();
+    const cps = await ControlPanel.find({});
+    res.status(200).json(cps);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+};
+
 const acceptDriver = async (req, res) => {
   try {
     const { id } = req.body;
@@ -159,29 +175,92 @@ const generateReport = async (req, res) => {
           (trip) => trip.tripPayment === "pending"
         );
 
-        const id = crypto.randomUUID().toString();
+        let amount = 0;
+
+        pending.forEach((trip) => {
+          amount += parseInt(trip.amount);
+        });
+
         return {
-          id: id,
-          cpId: cp._id,
           driverName: item.username,
+          phoneNumber: item.phoneNumber,
           vehicleNumber: item.vehicleNumber,
           pendingTrips: pending,
+          totalAmount: amount,
         };
       })
     );
-    console.log(drivers);
-    res.send(drivers);
+
+    let amount = 0;
+
+    drivers.forEach((driver) => {
+      driver.pendingTrips.forEach((trip) => {
+        amount += parseInt(trip.amount);
+      });
+    });
+    console.log(amount);
+
+    // Get current date and time
+    const now = new Date();
+
+    // Format the date
+    const formattedDate = `${(now.getDate() < 10 ? "0" : "") + now.getDate()}-${
+      (now.getMonth() + 1 < 10 ? "0" : "") + (now.getMonth() + 1)
+    }-${now.getFullYear()}`;
+
+    // Format the time
+    const formattedTime = `${
+      (now.getHours() < 10 ? "0" : "") + now.getHours()
+    }:${(now.getMinutes() < 10 ? "0" : "") + now.getMinutes()}:${
+      (now.getSeconds() < 10 ? "0" : "") + now.getSeconds()
+    }`;
+
+    // Combine date and time
+    const formattedDateTime = `${formattedDate}, ${formattedTime}`;
+
+    const report = {
+      reportId: crypto.randomUUID().toString(),
+      reportDate: formattedDateTime,
+      amount: amount,
+      data: drivers,
+      cpName: cp.username,
+      cpId: cp._id,
+    };
+
+    cp.reports.push(report);
+    await cp.save();
+    res.send(report);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Something went wrong");
   }
 };
 
+const deleteReport = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findById(req.params.id);
+    cp.reports = cp.reports.filter(
+      (report) => report.reportId !== req.params.reportId
+    );
+    await cp.save();
+    res.status(200).json(cp);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+};
+
 const payRequest = async (req, res) => {
   try {
     const admin = await Admin.find({});
-    admin.payReqs.push(req.body.details);
-    await admin.save();
+    admin[0].payReqs.push(req.body);
+    const cp = await ControlPanel.findById(req.body.cpId);
+    cp.reports = cp.reports.filter(
+      (report) => report.reportId !== req.body.reportId
+    );
+    await cp.save();
+    await admin[0].save();
+    res.status(200).json(admin[0]);
   } catch (error) {
     console.log(error.message);
     res.status(500).send(error.message);
@@ -196,8 +275,10 @@ module.exports = {
   acceptDriver,
   rejectDriver,
   deleteCps,
+  deleteCpById,
   createContract,
   assignContract,
   generateReport,
+  deleteReport,
   payRequest,
 };

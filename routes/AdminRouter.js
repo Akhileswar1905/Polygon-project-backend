@@ -1,69 +1,49 @@
 const express = require("express");
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
+const {
+  getAdmin,
+  createAdmin,
+  login,
+  deleteAdmin,
+  acceptReq,
+  getAllRequests,
+  getReqById,
+  rejectReq,
+  getAllReports,
+  getRepById,
+} = require("../controls/AdminControls");
+
 const router = express.Router();
 
 // Get the admin
-router.get("/", async (req, res) => {
-  try {
-    const admin = await Admin.find({});
-    if (!admin) {
-      return res.status(404).send("Admin not found");
-    }
-    res.status(200).send(admin);
-  } catch (err) {
-    res.status(500).send(error.message);
-  }
-});
+router.get("/", getAdmin);
 
 // Sign Up
-router.post("/signup", async (req, res) => {
-  try {
-    const hashPassword = bcrypt.hashSync(req.body.password, 10);
-    const admin = await Admin.create({
-      username: req.body.username,
-      password: hashPassword,
-    });
-    res.status(200).send(admin);
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
+router.post("/signup", createAdmin);
 
 // Login
-router.post("/login", async (req, res) => {
-  try {
-    const admin = await Admin.findOne({ username: req.body.username });
-    if (!admin) {
-      return res.status(404).send("Admin not found");
-    }
-    const isMatch = await bcrypt.compare(req.body.password, admin.password);
-    if (!isMatch) {
-      return res.status(400).send("Invalid password");
-    }
-    res.status(200).send("Login successful");
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
+router.post("/login", login);
+
+// Get all requests
+router.get("/requests", getAllRequests);
+
+// Get a particular request
+router.get("/requests/:id", getReqById);
 
 // Authenticate Payment Requests
-router.post("/payAuth", async (req, res) => {});
+router.post("/acceptReq/:id", acceptReq);
+
+// Reject Payment Request
+router.post("/rejectReq/:id", rejectReq);
 
 // Generate the report of all payout details
-router.get("/report", async (req, res) => {});
+router.get("/reports", getAllReports);
+
+// Get Report by Id
+router.get("/reports/:id", getRepById);
 
 // Delete admin
-router.delete("/", async (req, res) => {
-  try {
-    const admin = await Admin.findOneAndDelete({ username: req.body.username });
-    if (!admin) {
-      return res.status(404).send("Admin not found");
-    }
-    res.status(200).send("Admin deleted");
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
+router.delete("/", deleteAdmin);
 
 module.exports = router;
