@@ -255,9 +255,7 @@ const payRequest = async (req, res) => {
     const admin = await Admin.find({});
     admin[0].payReqs.push(req.body);
     const cp = await ControlPanel.findById(req.body.cpId);
-    cp.reports = cp.reports.filter(
-      (report) => report.reportId !== req.body.reportId
-    );
+
     await cp.save();
     await admin[0].save();
     res.status(200).json(admin[0]);
