@@ -287,7 +287,7 @@ const acceptUpdate = async (req, res) => {
 
     await ControlPanel.findOneAndUpdate(
       { _id: cpId, "updates.trip.tripID": tripId },
-      { $set: { "updates.$..trip.status": "allowed" } }
+      { $set: { "updates.$.trip.status": "allowed" } }
     );
 
     await Driver.findOneAndUpdate(
