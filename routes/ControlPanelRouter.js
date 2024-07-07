@@ -49,6 +49,6 @@ router.post("/payreq", payRequest);
 
 router.post("/update-request", updateReq);
 
-router.post("/accept-request", acceptUpdate);
+router.post("/accept-update-request", acceptUpdate);
 
 module.exports = router;

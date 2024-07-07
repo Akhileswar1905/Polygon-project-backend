@@ -268,9 +268,11 @@ const payRequest = async (req, res) => {
 
 const updateReq = async (req, res) => {
   try {
+    console.log(req.body);
     const cp = await ControlPanel.findById(req.body.cpId);
     cp.updates.push(req.body);
     await cp.save();
+    res.status(200).json("success");
   } catch (err) {
     console.log(err.message);
     res.status(500).send(err.message);
