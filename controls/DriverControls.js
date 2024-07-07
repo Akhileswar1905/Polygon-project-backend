@@ -79,14 +79,37 @@ const updateTripDetails = async (req, res) => {
       tripDate: req.body.tripDate,
       tripTime: req.body.tripTime,
       tripPayment: "pending",
+      status: "not-allowed",
       contract: req.body.contractId,
       amount: req.body.payPerRide,
+      phoneNumber: person.phoneNumber,
     }); // Add trip details
     await person.save(); // Save changes
     res.status(200).json(person); // Respond with updated JSON data of the driver
   } catch (error) {
     console.log(error);
     res.status(500).send("Error occurred " + error.message); // Error handling
+  }
+};
+
+// Update a trip
+const updateTrip = async (req, res) => {
+  try {
+    await Driver.findOneAndUpdate(
+      {
+        phoneNumber: req.body.phoneNumber,
+        "tripDetails.tripID": req.body.tripId,
+      },
+      {
+        $set: {
+          "tripDetails.$": req.body,
+          "tripDetails.$.status": "not-allowed",
+        },
+      }
+    );
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Error occurred " + error.message);
   }
 };
 
@@ -224,6 +247,7 @@ module.exports = {
   sendOTP,
   verifyOTP,
   updateTripDetails,
+  updateTrip,
   deleteAllDrivers,
   getDriverByPhoneNumber,
   getDriverByName,

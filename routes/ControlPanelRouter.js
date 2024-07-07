@@ -16,6 +16,8 @@ const {
   createContract,
   deleteReport,
   deleteCpById,
+  updateReq,
+  acceptUpdate,
 } = require("../controls/ControlPanelControls");
 const router = express.Router();
 
@@ -44,5 +46,9 @@ router.post("/generate-report/:id", generateReport);
 router.delete("/delete-report/:id/:reportId", deleteReport);
 
 router.post("/payreq", payRequest);
+
+router.post("/update-request", updateReq);
+
+router.post("/accept-request", acceptUpdate);
 
 module.exports = router;

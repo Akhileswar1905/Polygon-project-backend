@@ -29,6 +29,10 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  updates: {
+    type: Array,
+    default: [],
+  },
 });
 
 const ControlPanel = mongoose.model("ControlPanel", ControlPanelScheme);

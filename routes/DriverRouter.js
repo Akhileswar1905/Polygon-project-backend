@@ -10,6 +10,7 @@ const {
   deleteAllDrivers,
   getDriverByPhoneNumber,
   getDriverByName,
+  updateTrip,
 } = require("../controls/DriverControls");
 // Get all drivers
 router.get("/", getDriver);
@@ -37,6 +38,9 @@ router.delete("/:id", deleteDriver);
 
 // Delete all drivers
 router.delete("/", deleteAllDrivers);
+
+// Updating a trip
+router.post("/update-trip", updateTrip);
 
 module.exports = router; // Export router for use in other files
 

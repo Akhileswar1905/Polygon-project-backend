@@ -3,6 +3,7 @@ const ControlPanel = require("../models/ControlPanel");
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
+const { acceptReq } = require("./AdminControls");
 
 const getAllCps = async (req, res) => {
   try {
@@ -265,6 +266,38 @@ const payRequest = async (req, res) => {
   }
 };
 
+const updateReq = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findById(req.body.cpId);
+    cp.updates.push(req.body);
+    await cp.save();
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
+};
+
+const acceptUpdate = async (req, res) => {
+  try {
+    const cpId = req.body.cpId;
+    const tripId = req.body.trip.tripID;
+    const phoneNumber = req.body.phoneNumber;
+
+    await ControlPanel.findOneAndUpdate(
+      { _id: cpId, "updates.trip.tripID": tripId },
+      { $set: { "updates.$.status": "allowed" } }
+    );
+
+    await Driver.findOneAndUpdate(
+      { phoneNumber: phoneNumber, "tripDetails.tripID": tripId },
+      { $set: { "tripDetails.$.status": "allowed" } }
+    );
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+};
+
 module.exports = {
   getAllCps,
   getCP,
@@ -279,4 +312,6 @@ module.exports = {
   generateReport,
   deleteReport,
   payRequest,
+  updateReq,
+  acceptUpdate,
 };
