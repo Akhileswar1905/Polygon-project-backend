@@ -98,7 +98,7 @@ const updateTrip = async (req, res) => {
     await Driver.findOneAndUpdate(
       {
         phoneNumber: req.body.phoneNumber,
-        "tripDetails.tripID": req.body.tripId,
+        "tripDetails.tripID": req.body.tripID,
       },
       {
         $set: {
