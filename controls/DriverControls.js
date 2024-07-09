@@ -95,7 +95,7 @@ const updateTripDetails = async (req, res) => {
 // Update a trip
 const updateTrip = async (req, res) => {
   try {
-    const updateResult = await Driver.findOneAndUpdate(
+    await Driver.findOneAndUpdate(
       {
         phoneNumber: req.body.phoneNumber,
         "tripDetails.tripID": req.body.tripId,
@@ -111,18 +111,14 @@ const updateTrip = async (req, res) => {
       { new: true }
     );
 
-    if (!updateResult) {
-      return res.status(404).send("Trip not found");
-    }
-
-    const updatedTrip = updateResult.tripDetails.find(
+    const driver = await Driver.findOne({ phoneNumber: req.body.phoneNumber });
+    const updatedTrip = driver.tripDetails.find(
       (trip) => trip.tripID === req.body.tripId
     );
-
-    res.status(200).json(updatedTrip);
+    res.status(200).json(updateTrip);
   } catch (error) {
     console.log(error.message);
-    res.status(500).send("Error occurred: " + error.message);
+    res.status(500).send("Error occurred " + error.message);
   }
 };
 
