@@ -1,4 +1,5 @@
 const Admin = require("../models/Admin");
+const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
 
 const acceptReq = async (req, res) => {
@@ -14,7 +15,6 @@ const acceptReq = async (req, res) => {
       (request) => request.reportId !== req.params.id
     );
 
-    console.log(admin[0].payReqs);
     await admin[0].save();
 
     admin[0].payReps.push(request);
@@ -102,6 +102,7 @@ const createAdmin = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
 const deleteAdmin = async (req, res) => {
   try {
     const admin = await Admin.findOneAndDelete({ username: req.body.username });

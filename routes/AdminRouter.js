@@ -1,6 +1,4 @@
 const express = require("express");
-const Admin = require("../models/Admin");
-const bcrypt = require("bcrypt");
 const {
   getAdmin,
   createAdmin,
