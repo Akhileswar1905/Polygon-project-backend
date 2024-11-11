@@ -1,25 +1,35 @@
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
+const ControlPanel = require("../models/ControlPanel");
 
 const acceptReq = async (req, res) => {
   try {
+    console.log(req.body, req.params.id);
     const admin = await Admin.find({});
     const requests = admin[0].payReqs;
+    console.log(requests);
     const request = requests.find(
       (request) => request.reportId === req.params.id
     );
     request.status = "Done";
+    console.log(request);
 
+    // Update Admin
     admin[0].payReqs = admin[0].payReqs.filter(
       (request) => request.reportId !== req.params.id
     );
 
     await admin[0].save();
 
-    admin[0].payReps.push(request);
+    // Update CP
+    const cp = await ControlPanel.findById(request.cpId);
+    cp.reports = cp.reports.filter(
+      (request) => request.reportId !== req.params.id
+    );
+    await cp.save();
 
-    // Update data of trip details of each driver to "Done" or "Paid"
+    // Update driver
     const data = request.data;
 
     // Loop through each driver in the request
@@ -47,10 +57,14 @@ const acceptReq = async (req, res) => {
       await rider.save();
     }
 
+    admin[0].payReps.push(request);
     await admin[0].save();
+    cp.reports.push(request);
+    await cp.save();
     res.status(200).json(request);
   } catch (error) {
     res.status(500).send(error.message);
+    console.log(error.message);
   }
 };
 

@@ -146,6 +146,8 @@ const createContract = async (req, res) => {
 
 const assignContract = async (req, res) => {
   try {
+    console.log(req.body);
+
     const user = await Driver.findById(req.body.driverId);
     const { companyId, companyName, duration, payPerRide } = req.body;
     const contract = {
@@ -154,7 +156,7 @@ const assignContract = async (req, res) => {
       companyId: companyId,
       payPerRide: payPerRide,
     };
-    user.contractDetails.push(contract);
+    user?.contractDetails.push(contract);
     user.currentContract = contract.companyId;
     await user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
@@ -226,6 +228,7 @@ const generateReport = async (req, res) => {
       data: drivers,
       cpName: cp.username,
       cpId: cp._id,
+      status: "Pending",
     };
 
     cp.reports.push(report);
