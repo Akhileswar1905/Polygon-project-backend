@@ -100,7 +100,8 @@ const updateTripDetails = async (req, res) => {
     }
 
     const driverIndex = cp.drivers.findIndex(
-      (driver) => driver._id.toString() === person._id.toString()
+      (driver) =>
+        driver.phoneNumber.toString() === person.phoneNumber.toString()
     );
 
     if (driverIndex === -1) {
