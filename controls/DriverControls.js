@@ -92,34 +92,16 @@ const updateTripDetails = async (req, res) => {
 
     const cpId = person.controlPanel;
     const cp = await ControlPanel.findById(cpId);
-    console.log(cp);
 
     if (!cp) {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
-    const driverIndex = cp.drivers.findIndex(
+    cp.drivers = cp.drivers.filter(
       (driver) => driver.phoneNumber === person.phoneNumber
     );
-    console.log(driverIndex);
-    if (driverIndex === -1) {
-      return res
-        .status(404)
-        .json({ message: "Driver not found in ControlPanel" });
-    }
 
-    cp.drivers[driverIndex].tripDetails.push({
-      tripID: req.body.tripId,
-      tripDate: req.body.tripDate,
-      tripTime: req.body.tripTime,
-      tripPayment: "pending",
-      status: "not-allowed",
-      contract: req.body.contractId,
-      amount: req.body.payPerRide,
-      phoneNumber: person.phoneNumber,
-    });
-
-    console.log(cp.drivers[driverIndex].tripDetails);
+    cp.drivers.push(person);
 
     await cp.save();
 
