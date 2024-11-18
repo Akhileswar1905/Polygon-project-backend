@@ -35,6 +35,7 @@ app.get("/", (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  console.log(req.body);
   try {
     const admin = await Admin.find({ username: username });
     const cp = await ControlPanel.find({ username: username });
