@@ -22,5 +22,8 @@
     "request": "^2.88.2",
     "twilio": "^5.0.3",
     "twilio-cli": "^5.19.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   }
 }
