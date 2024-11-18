@@ -119,6 +119,8 @@ const updateTripDetails = async (req, res) => {
       phoneNumber: person.phoneNumber,
     });
 
+    console.log(cp.drivers[driverIndex].tripDetails);
+
     await cp.save();
 
     res.status(200).json(person);
