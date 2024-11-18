@@ -98,7 +98,7 @@ const updateTripDetails = async (req, res) => {
     }
 
     cp.drivers = cp.drivers.filter(
-      (driver) => driver.phoneNumber === person.phoneNumber
+      (driver) => driver.phoneNumber !== person.phoneNumber
     );
 
     cp.drivers.push(person);
