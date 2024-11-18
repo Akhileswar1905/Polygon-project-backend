@@ -71,13 +71,11 @@ const getDriverByName = async (req, res) => {
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
-    //
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber });
 
     if (!person) {
       return res.status(404).json({ message: "Driver not found" });
     }
-    console.log(person);
 
     person.tripDetails.push({
       tripID: req.body.tripId,
@@ -94,16 +92,16 @@ const updateTripDetails = async (req, res) => {
 
     const cpId = person.controlPanel;
     const cp = await ControlPanel.findById(cpId);
+    console.log(cp);
 
     if (!cp) {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
     const driverIndex = cp.drivers.findIndex(
-      (driver) =>
-        driver.phoneNumber.toString() === person.phoneNumber.toString()
+      (driver) => driver.phoneNumber === person.phoneNumber
     );
-
+    console.log(driverIndex);
     if (driverIndex === -1) {
       return res
         .status(404)
