@@ -71,9 +71,14 @@ const getDriverByName = async (req, res) => {
 // Update Trip Details
 const updateTripDetails = async (req, res) => {
   try {
-    // Updating driver document
-    const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber }); // Find and update driver by phone number
+    //
+    const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber });
+
+    if (!person) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
     console.log(person);
+
     person.tripDetails.push({
       tripID: req.body.tripId,
       tripDate: req.body.tripDate,
@@ -83,41 +88,70 @@ const updateTripDetails = async (req, res) => {
       contract: req.body.contractId,
       amount: req.body.payPerRide,
       phoneNumber: person.phoneNumber,
-    }); // Add trip details
-    await person.save(); // Save changes
-    res.status(200).json(person); // Respond with updated JSON data of the driver
+    });
+
+    await person.save();
+
+    const cpId = person.controlPanel;
+    const cp = await ControlPanel.findById(cpId);
+
+    if (!cp) {
+      return res.status(404).json({ message: "ControlPanel not found" });
+    }
+
+    const driverIndex = cp.drivers.findIndex(
+      (driver) => driver._id.toString() === person._id.toString()
+    );
+
+    if (driverIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: "Driver not found in ControlPanel" });
+    }
+
+    cp.drivers[driverIndex].tripDetails.push({
+      tripID: req.body.tripId,
+      tripDate: req.body.tripDate,
+      tripTime: req.body.tripTime,
+      tripPayment: "pending",
+      status: "not-allowed",
+      contract: req.body.contractId,
+      amount: req.body.payPerRide,
+      phoneNumber: person.phoneNumber,
+    });
+
+    await cp.save();
+
+    res.status(200).json(person);
   } catch (error) {
     console.log(error);
-    res.status(500).send("Error occurred " + error.message); // Error handling
+    res.status(500).send("Error occurred " + error.message);
   }
 };
 
 // Update a trip
 const updateTrip = async (req, res) => {
   try {
-    // Step 1: Update trip details in Driver document
     const updatedDriver = await Driver.findOneAndUpdate(
       {
         phoneNumber: req.body.phoneNumber,
-        "tripDetails.tripID": req.body.tripID, // Find the correct trip by tripID
+        "tripDetails.tripID": req.body.tripID,
       },
       {
         $set: {
           "tripDetails.$.tripID": req.body.tripId,
           "tripDetails.$.tripDate": req.body.tripDate,
           "tripDetails.$.tripTime": req.body.tripTime,
-          "tripDetails.$.status": "not-allowed", // Modify status to 'not-allowed'
+          "tripDetails.$.status": "not-allowed",
         },
       },
-      { new: true } // Return the updated driver
+      { new: true }
     );
 
-    // Check if driver was found
     if (!updatedDriver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Step 2: Get the updated trip details from the Driver
     const updatedTrip = updatedDriver.tripDetails.find(
       (trip) => trip.tripID === req.body.tripId
     );
@@ -128,17 +162,15 @@ const updateTrip = async (req, res) => {
         .json({ message: "Trip not found in driver's tripDetails" });
     }
 
-    // Step 3: Update the trip details in the corresponding ControlPanel
-    const cpId = updatedDriver.controlPanel; // Get the ControlPanel ID from the Driver
+    const cpId = updatedDriver.controlPanel;
     const cp = await ControlPanel.findById(cpId);
 
     if (!cp) {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
-    // Find the driver in ControlPanel by their ID
     const driverIndex = cp.drivers.findIndex(
-      (driver) => driver._id.toString() === req.params.id
+      (driver) => driver.phoneNumber === req.body.phoneNumber
     );
 
     if (driverIndex === -1) {
@@ -149,7 +181,6 @@ const updateTrip = async (req, res) => {
 
     const driverInCp = cp.drivers[driverIndex];
 
-    // Update the trip details in the driver's trips within ControlPanel
     const tripIndex = driverInCp.tripDetails.findIndex(
       (trip) => trip.tripID === req.body.tripId
     );
@@ -160,19 +191,16 @@ const updateTrip = async (req, res) => {
         .json({ message: "Trip not found in ControlPanel" });
     }
 
-    // Update the trip details for this driver in ControlPanel
     driverInCp.tripDetails[tripIndex] = {
       ...driverInCp.tripDetails[tripIndex],
       tripID: req.body.tripId,
       tripDate: req.body.tripDate,
       tripTime: req.body.tripTime,
-      status: "not-allowed", // Modify status
+      status: "not-allowed",
     };
 
-    // Save the updated ControlPanel
     await cp.save();
 
-    // Step 4: Return the updated trip details in response
     res.status(200).json(updatedTrip);
   } catch (error) {
     console.error(error.message);
