@@ -97,47 +97,6 @@ const updateTripDetails = async (req, res) => {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
-    // Calculate yesterday's date range
-    const today = new Date();
-    const yesterdayStart = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() - 1,
-      0,
-      0,
-      0
-    );
-    const yesterdayEnd = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      today.getHours(),
-      today.getMinutes(),
-      today.getSeconds()
-    );
-
-    // Count trips made yesterday
-    let yesterdayTrips = 0;
-    const allDrivers = await Driver.find({ controlPanel: cpId }); // Get all drivers for this control panel
-    console.log(yesterdayStart, yesterdayEnd);
-    allDrivers.forEach((driver) => {
-      driver.tripDetails.forEach((trip) => {
-        const tripDate = trip.tripDate.split("-");
-        const formattedDate = new Date(
-          parseInt(tripDate[2]),
-          parseInt(tripDate[1] - 1),
-          parseInt(tripDate[0])
-        ).getTime();
-        if (formattedDate >= yesterdayStart && formattedDate <= yesterdayEnd) {
-          yesterdayTrips += 1;
-        }
-      });
-    });
-
-    // Update prevTrips in the ControlPanel
-    cp.prevTrips = yesterdayTrips;
-    await cp.save();
-
     cp.drivers = cp.drivers.filter(
       (driver) => driver._id.toString() !== person._id.toString()
     );
