@@ -110,16 +110,16 @@ const updateTripDetails = async (req, res) => {
     const yesterdayEnd = new Date(
       today.getFullYear(),
       today.getMonth(),
-      today.getDate() - 1,
-      23,
-      59,
-      59
+      today.getDate(),
+      today.getHours(),
+      today.getMinutes(),
+      today.getSeconds()
     );
 
     // Count trips made yesterday
     let yesterdayTrips = 0;
     const allDrivers = await Driver.find({ controlPanel: cpId }); // Get all drivers for this control panel
-
+    console.log(yesterdayStart, yesterdayEnd);
     allDrivers.forEach((driver) => {
       driver.tripDetails.forEach((trip) => {
         const tripDate = new Date(trip.tripDate);

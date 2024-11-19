@@ -157,6 +157,16 @@ const createContract = async (req, res) => {
       createAt: new Date().toISOString().slice(0, 10),
     };
 
+    // Find the contracts of last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const contracts = cp.contracts
+      .find({
+        controlPanel: req.body.id,
+        createdAt: { $gte: thirtyDaysAgo }, // Use $lte to include contracts created on or before that date
+      })
+      .countDocuments();
+    cp.prevContracts = contracts;
+    await cp.save();
     cp.contracts.push(contract);
     await cp.save();
     res.status(200).json(cp);
