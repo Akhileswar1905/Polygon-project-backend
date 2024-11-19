@@ -97,11 +97,17 @@ const updateTripDetails = async (req, res) => {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
+    const count1 = 0;
+    cp.drivers.forEach((driver) => (count1 += driver.tripDetails.length));
+    cp.prevTrips = count1;
     cp.drivers = cp.drivers.filter(
       (driver) => driver.phoneNumber !== person.phoneNumber
     );
 
     cp.drivers.push(person);
+
+    const count2 = 0;
+    cp.drivers.forEach((driver) => (count2 += driver.tripDetails.length));
 
     await cp.save();
 
@@ -152,35 +158,10 @@ const updateTrip = async (req, res) => {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
-    const driverIndex = cp.drivers.findIndex(
-      (driver) => driver.phoneNumber === req.body.phoneNumber
+    cp.drivers = cp.drivers.filter(
+      (driver) => driver._id.toString() !== updatedDriver._id.toString()
     );
-
-    if (driverIndex === -1) {
-      return res
-        .status(404)
-        .json({ message: "Driver not found in ControlPanel" });
-    }
-
-    const driverInCp = cp.drivers[driverIndex];
-
-    const tripIndex = driverInCp.tripDetails.findIndex(
-      (trip) => trip.tripID === req.body.tripId
-    );
-
-    if (tripIndex === -1) {
-      return res
-        .status(404)
-        .json({ message: "Trip not found in ControlPanel" });
-    }
-
-    driverInCp.tripDetails[tripIndex] = {
-      ...driverInCp.tripDetails[tripIndex],
-      tripID: req.body.tripId,
-      tripDate: req.body.tripDate,
-      tripTime: req.body.tripTime,
-      status: "not-allowed",
-    };
+    cp.drivers.push(updatedDriver);
 
     await cp.save();
 
@@ -195,6 +176,13 @@ const updateTrip = async (req, res) => {
 const deleteDriver = async (req, res) => {
   try {
     const person = await Driver.findByIdAndDelete(req.params.id); // Find and delete driver by ID
+    const cp = await ControlPanel.findById(person.controlPanel);
+    if (!cp) {
+      return res.status(404).json({ message: "ControlPanel not found" });
+    }
+    cp.drivers = cp.drivers.filter(
+      (driver) => driver._id.toString() !== req.params.id
+    );
     res.status(200).json(person); // Respond with JSON data of the deleted driver
   } catch (error) {
     res.status(500).send("Error occurred " + error.message); // Error handling

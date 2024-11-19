@@ -38,10 +38,13 @@ const acceptReq = async (req, res) => {
 
       // Update tripPayment for each pending trip of the driver
       for (const ride of pendingTripsIds) {
-        await Driver.findOneAndUpdate(
+        const updatedDriver = await Driver.findOneAndUpdate(
           { phoneNumber: driver.phoneNumber, "tripDetails.tripID": ride },
           { $set: { "tripDetails.$.tripPayment": "Done" } }
         );
+        if (!updatedDriver) {
+          return res.status(404).json({ message: "Driver not found" });
+        }
       }
 
       // Update earnings for the driver
@@ -55,6 +58,13 @@ const acceptReq = async (req, res) => {
         });
       }
       await rider.save();
+
+      cp.drivers = cp.drivers.filter(
+        (driver) => driver._id.toString() === rider._id.toString()
+      );
+      await cp.save();
+      cp.drivers.push(rider);
+      await cp.save();
     }
 
     admin[0].payReps.push(request);
