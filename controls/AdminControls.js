@@ -61,7 +61,7 @@ const acceptReq = async (req, res) => {
       await rider.save();
 
       cp.drivers = cp.drivers.filter(
-        (driver) => driver._id.toString() === rider._id.toString()
+        (driver) => driver._id.toString() !== rider._id.toString()
       );
       await cp.save();
       cp.drivers.push(rider);
