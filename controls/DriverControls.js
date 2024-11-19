@@ -97,7 +97,7 @@ const updateTripDetails = async (req, res) => {
       return res.status(404).json({ message: "ControlPanel not found" });
     }
 
-    const count1 = 0;
+    let count1 = 0;
     cp.drivers.forEach((driver) => (count1 += driver.tripDetails.length));
     cp.prevTrips = count1;
     cp.drivers = cp.drivers.filter(
@@ -106,7 +106,7 @@ const updateTripDetails = async (req, res) => {
 
     cp.drivers.push(person);
 
-    const count2 = 0;
+    let count2 = 0;
     cp.drivers.forEach((driver) => (count2 += driver.tripDetails.length));
 
     await cp.save();
