@@ -122,12 +122,12 @@ const updateTripDetails = async (req, res) => {
     console.log(yesterdayStart, yesterdayEnd);
     allDrivers.forEach((driver) => {
       driver.tripDetails.forEach((trip) => {
-        const tripDate = new Date(trip.tripDate);
+        const tripDate = trip.tripDate.split("-");
         const formattedDate = new Date(
-          tripDate.getFullYear(),
-          tripDate.getMonth(),
-          tripDate.getDate()
-        );
+          parseInt(tripDate[2]),
+          parseInt(tripDate[1]),
+          parseInt(tripDate[0])
+        ).getTime();
         if (formattedDate >= yesterdayStart && formattedDate <= yesterdayEnd) {
           yesterdayTrips += 1;
         }
