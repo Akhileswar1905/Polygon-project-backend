@@ -132,6 +132,11 @@ const updateTripDetails = async (req, res) => {
     // Update prevTrips in the ControlPanel
     cp.prevTrips = yesterdayTrips;
     await cp.save();
+
+    cp.drivers = cp.drivers.filter(
+      (driver) => driver._id.toString() !== person._id.toString()
+    );
+
     cp.drivers.push(person);
 
     await cp.save();
