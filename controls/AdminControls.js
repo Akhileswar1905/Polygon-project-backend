@@ -55,6 +55,7 @@ const acceptReq = async (req, res) => {
           tripId: ride,
           amount: parseInt(trip.amount),
           tripDate: trip.tripDate,
+          paidOn: new Date().toISOString().slice(0, 10),
         });
       }
       await rider.save();
