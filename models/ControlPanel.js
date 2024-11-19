@@ -33,6 +33,22 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  prevDrivers: {
+    type: Number,
+    default: 0,
+  },
+  prevContracts: {
+    type: Number,
+    default: 0,
+  },
+  prevTrips: {
+    type: Number,
+    default: 0,
+  },
+  prevAmount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const ControlPanel = mongoose.model("ControlPanel", ControlPanelScheme);

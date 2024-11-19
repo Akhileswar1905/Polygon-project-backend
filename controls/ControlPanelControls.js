@@ -72,11 +72,23 @@ const deleteCpById = async (req, res) => {
   try {
     const cp = await ControlPanel.findByIdAndDelete(req.params.id);
     const admin = await Admin.find({});
+
     admin[0].controlPanels = admin[0].controlPanels.filter((cp) => {
       return String(cp._id) !== String(req.params.id);
     });
     await admin[0].save();
     const cps = await ControlPanel.find({});
+
+    // Assign another CP to the drivers of this CP
+    const drivers = await Driver.find({ controlPanel: req.params.id });
+    drivers.forEach(async (driver) => {
+      const cp = cps[Math.floor(Math.random() * cps.length)];
+      driver.controlPanel = cp._id;
+      cp.drivers.push(driver);
+      await cp.save();
+      await driver.save();
+    });
+
     res.status(200).json(cps);
   } catch (error) {
     console.log(error.message);
@@ -97,8 +109,16 @@ const acceptDriver = async (req, res) => {
     cp.requests = cp.requests.filter(
       (request) => String(request._id) !== String(user._id)
     );
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    await cp.save();
+    const prevDrivers = await Driver.find({
+      controlPanel: user.controlPanel,
+      createdAt: { $gte: thirtyDaysAgo }, // Use $lte to include drivers created on or before that date
+    }).countDocuments(); // Use countDocuments() to get the count directly
+
+    cp.prevDrivers = prevDrivers; // Update the control panel's prevDrivers field
+    await cp.save(); // Save the updated control panel
+
     cp.drivers.push(user);
     await cp.save();
     res.status(200).json({ driver: user, ControlPanel: cp });
@@ -134,7 +154,9 @@ const createContract = async (req, res) => {
       companyName: companyName,
       duration: duration,
       companyId: companyId,
+      createAt: new Date().toISOString().slice(0, 10),
     };
+
     cp.contracts.push(contract);
     await cp.save();
     res.status(200).json(cp);
@@ -195,10 +217,11 @@ const generateReport = async (req, res) => {
     );
 
     let amount = 0;
-
+    let allPendingTrips = [];
     drivers.forEach((driver) => {
       driver.pendingTrips.forEach((trip) => {
         amount += parseInt(trip.amount);
+        allPendingTrips.push(trip);
       });
     });
     console.log(amount);
@@ -228,6 +251,7 @@ const generateReport = async (req, res) => {
       data: drivers,
       cpName: cp.username,
       cpId: cp._id,
+      allPendingTrips: allPendingTrips,
       status: "Pending",
     };
 
