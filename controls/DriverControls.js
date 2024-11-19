@@ -125,7 +125,7 @@ const updateTripDetails = async (req, res) => {
         const tripDate = trip.tripDate.split("-");
         const formattedDate = new Date(
           parseInt(tripDate[2]),
-          parseInt(tripDate[1]),
+          parseInt(tripDate[1] - 1),
           parseInt(tripDate[0])
         ).getTime();
         if (formattedDate >= yesterdayStart && formattedDate <= yesterdayEnd) {
