@@ -99,15 +99,14 @@ const updateTripDetails = async (req, res) => {
 
     let count1 = 0;
     cp.drivers.forEach((driver) => (count1 += driver.tripDetails.length));
+    console.log(count1);
     cp.prevTrips = count1;
     cp.drivers = cp.drivers.filter(
       (driver) => driver.phoneNumber !== person.phoneNumber
     );
+    await cp.save();
 
     cp.drivers.push(person);
-
-    let count2 = 0;
-    cp.drivers.forEach((driver) => (count2 += driver.tripDetails.length));
 
     await cp.save();
 
