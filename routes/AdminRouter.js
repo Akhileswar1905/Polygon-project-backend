@@ -10,6 +10,10 @@ const {
   rejectReq,
   getAllReports,
   getRepById,
+  createContract,
+  deleteContract,
+  updateContract,
+  assignContract,
 } = require("../controls/AdminControls");
 
 const router = express.Router();
@@ -22,6 +26,18 @@ router.post("/signup", createAdmin);
 
 // Login
 router.post("/login", login);
+
+// Create a new Contract
+router.post("/contract", createContract);
+
+// Delete a Contract
+router.delete("/contract/:id", deleteContract);
+
+// Update a Contract
+router.put("/contract/:id", updateContract);
+
+//  Assign a Contract
+router.post("/assignContract", assignContract);
 
 // Get all requests
 router.get("/requests", getAllRequests);

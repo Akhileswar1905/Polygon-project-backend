@@ -13,6 +13,10 @@ const adminSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  contracts: {
+    type: Array,
+    default: [],
+  },
   payReqs: {
     type: Array,
     default: [],

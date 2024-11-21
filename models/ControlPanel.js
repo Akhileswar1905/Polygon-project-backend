@@ -49,6 +49,11 @@ const ControlPanelScheme = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  dateOfJoining: {
+    type: String,
+    required: false,
+    default: new Date().toISOString().slice(0, 10),
+  },
 });
 
 const ControlPanel = mongoose.model("ControlPanel", ControlPanelScheme);
