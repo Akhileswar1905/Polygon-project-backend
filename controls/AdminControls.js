@@ -188,30 +188,61 @@ const updateContract = async (req, res) => {
 // ASSIGN CONTRACT
 const assignContract = async (req, res) => {
   try {
-    const admin = await findAdmin();
+    // Validate request body
     const { contract, cps } = req.body;
+    if (!contract || !cps || !Array.isArray(cps)) {
+      return res.status(400).send("Invalid request: contract or cps missing");
+    }
 
+    // Find admin
+    const admin = await findAdmin();
+    if (!admin) {
+      return res.status(404).send("Admin not found");
+    }
+
+    // Find target contract
     const targetContract = admin.contracts.find(
       (c) => c.contractId === contract.contractId
     );
-    if (!targetContract) return res.status(404).send("Contract not found");
+    if (!targetContract) {
+      return res.status(404).send("Contract not found");
+    }
 
+    // Mark contract as assigned
     targetContract.assigned = true;
+
+    // Process control panels
     const updatedPanels = await Promise.all(
       cps.map(async (cpId) => {
         const panel = await ControlPanel.findById(cpId);
         if (panel) {
+          // Assign contract to the panel
           panel.contracts.push(targetContract);
+
+          // Remove from admin's controlPanels and re-add updated panel
+          admin.controlPanels = admin.controlPanels.filter(
+            (cp) => cp._id.toString() !== panel._id.toString()
+          );
+          admin.controlPanels.push(panel);
+
+          // Save both panel and admin
           await panel.save();
         }
         return panel;
       })
     );
 
-    await saveControlPanels(admin, updatedPanels.filter(Boolean));
-    res.status(200).json(targetContract);
+    // Save updated admin
+    await admin.save();
+
+    // Respond with the updated contract or control panels
+    res.status(200).json({
+      message: "Contract assigned successfully",
+      contract: targetContract,
+      updatedPanels,
+    });
   } catch (error) {
-    console.error(error.message);
+    console.error("Error assigning contract:", error.message);
     res.status(500).send({ error: error.message });
   }
 };
@@ -359,7 +390,7 @@ const getAdmin = async (req, res) => {
     if (!admin) {
       return res.status(404).send("Admin not found");
     }
-    res.status(200).send(admin);
+    res.status(200).send(admin[0]);
   } catch (error) {
     res.status(500).send(error.message);
   }

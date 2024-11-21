@@ -112,6 +112,15 @@ const acceptDriver = async (req, res) => {
 
     cp.drivers.push(user);
     await cp.save();
+
+    const admin = await Admin.find({});
+    admin[0].controlPanels = admin[0].controlPanels.filter(
+      (panel) => panel._id.toString() === cp._id.toString()
+    );
+
+    admin[0].controlPanels.push(cp);
+    await admin[0].save();
+
     res.status(200).json({ driver: user, ControlPanel: cp });
   } catch (error) {
     console.error(error);
@@ -159,21 +168,32 @@ const createContract = async (req, res) => {
 
 const assignContract = async (req, res) => {
   try {
-    console.log(req.body);
+    const { contract, drivers } = req.body;
+    console.log(contract, drivers);
+    const driver = await Driver.findById(drivers[0]);
+    const cp = await ControlPanel.findById(driver.controlPanel);
 
-    const user = await Driver.findById(req.body.driverId);
-    const { companyId, companyName, duration, payPerRide } = req.body;
-    const contract = {
-      companyName: companyName,
-      duration: duration,
-      companyId: companyId,
-      payPerRide: payPerRide,
-    };
-    user?.contractDetails.push(contract);
-    user.currentContract = contract.companyId;
-    await user.save();
-    const cp = await ControlPanel.findById(user.controlPanel);
-    res.status(200).json({ driver: user, ControlPanel: cp }); // Respond with updated JSON data of the driver
+    const targetContract = cp.contracts.find(
+      (c) => c.contractId === contract.contractId
+    );
+    if (!targetContract) return res.status(404).send("Contract not found");
+
+    const updateDrivers = await Promise.all(
+      drivers.map(async (driverId) => {
+        const driver = await Driver.findById(driverId);
+        driver.contractDetails.push(targetContract);
+        await driver.save();
+
+        cp.drivers = cp.drivers.filter(
+          (d) => d._id.toString() !== driver._id.toString()
+        );
+        cp.drivers.push(driver);
+        await cp.save();
+
+        return driver;
+      })
+    );
+    res.status(200).json(updateDrivers);
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message); // Error handling
