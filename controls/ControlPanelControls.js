@@ -109,15 +109,6 @@ const acceptDriver = async (req, res) => {
     cp.requests = cp.requests.filter(
       (request) => String(request._id) !== String(user._id)
     );
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    const prevDrivers = await Driver.find({
-      controlPanel: user.controlPanel,
-      createdAt: { $gte: thirtyDaysAgo }, // Use $lte to include drivers created on or before that date
-    }).countDocuments(); // Use countDocuments() to get the count directly
-
-    cp.prevDrivers = prevDrivers; // Update the control panel's prevDrivers field
-    await cp.save(); // Save the updated control panel
 
     cp.drivers.push(user);
     await cp.save();
@@ -154,7 +145,7 @@ const createContract = async (req, res) => {
       companyName: companyName,
       duration: duration,
       companyId: companyId,
-      createAt: new Date().toISOString().slice(0, 10),
+      createdAt: new Date().toISOString().slice(0, 10),
     };
 
     cp.contracts.push(contract);

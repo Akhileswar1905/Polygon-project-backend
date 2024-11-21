@@ -2,7 +2,221 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
 const ControlPanel = require("../models/ControlPanel");
+const uuid = require("uuid").v4;
+// Helper function to find admin
+const findAdmin = async () => {
+  const admin = await Admin.findOne({});
+  if (!admin) throw new Error("Admin not found");
+  return admin;
+};
 
+// Helper function to save control panels
+const saveControlPanels = async (admin, updatedPanels) => {
+  admin.controlPanels = updatedPanels;
+  await admin.save();
+};
+
+// CREATE CONTRACT
+const createContract = async (req, res) => {
+  try {
+    const admin = await findAdmin();
+    const contract = {
+      contractId: req.body.companyId || uuid(),
+      companyName: req.body.companyName,
+      startDate:
+        req.body.startDate !== ""
+          ? req.body.startDate
+          : new Date().toISOString().slice(0, 10),
+      endDate: req.body.endDate,
+      contactNumber: req.body.contactNumber,
+      email: req.body.email,
+      createdAt: req.body.createdAt || new Date().toISOString().slice(0, 10),
+      amount: req.body.amount,
+      assigned: false,
+    };
+
+    admin.contracts.push(contract);
+    await admin.save();
+    res.status(201).json(contract);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ error: error.message });
+  }
+};
+
+// DELETE CONTRACT
+const deleteContract = async (req, res) => {
+  try {
+    // Fetch admin and ensure it exists
+    const admin = await Admin.findOne({});
+    if (!admin) return res.status(404).send("Admin not found");
+
+    // Find the contract to be deleted
+    const contract = admin.contracts.find(
+      (c) => c.contractId === req.params.id
+    );
+    if (!contract) return res.status(404).send("Contract not found");
+
+    // Remove the contract from admin contracts
+    admin.contracts = admin.contracts.filter(
+      (c) => c.contractId !== req.params.id
+    );
+
+    // Update associated control panels
+    const updatedControlPanels = await Promise.all(
+      admin.controlPanels.map(async (panelId) => {
+        const panel = await ControlPanel.findById(panelId);
+        if (panel) {
+          panel.contracts = panel.contracts.filter(
+            (c) => c.contractId !== req.params.id
+          );
+          await panel.save(); // Save updated control panel
+          return panel;
+        }
+        return null;
+      })
+    );
+
+    // Filter out null panels (in case some IDs are invalid)
+    admin.controlPanels = updatedControlPanels
+      .filter(Boolean)
+      .map((panel) => panel._id);
+
+    // Save the admin document
+    await admin.save();
+
+    res
+      .status(200)
+      .json({ message: "Contract deleted successfully", contract });
+  } catch (error) {
+    console.error("Error deleting contract:", error.message);
+    res.status(500).send({ error: error.message });
+  }
+};
+
+// UPDATE CONTRACT
+const updateContract = async (req, res) => {
+  try {
+    // Fetch admin and ensure it exists
+    const admin = await Admin.findOne({});
+    if (!admin) {
+      console.error("Admin not found");
+      return res.status(404).send("Admin not found");
+    }
+
+    // Find the contract to be updated
+    const contract = admin.contracts.find(
+      (c) => c.contractId === req.params.id
+    );
+    if (!contract) {
+      console.error("Contract not found in admin");
+      return res.status(404).send("Contract not found");
+    }
+
+    console.log("Original Admin Contract:", contract);
+    // Update the contract in the admin document
+    Object.assign(contract, {
+      companyName: req.body.companyName || contract.companyName,
+      startDate: req.body.startDate || contract.startDate,
+      endDate: req.body.endDate || contract.endDate,
+      contactNumber: req.body.contactNumber || contract.contactNumber,
+      email: req.body.email || contract.email,
+      amount: req.body.amount || contract.amount,
+      assigned:
+        req.body.assigned !== undefined ? req.body.assigned : contract.assigned,
+    });
+
+    console.log("Updated Admin Contract:", contract);
+
+    admin.contracts = admin.contracts.filter((c) => {
+      return c.contractId !== req.params.id;
+    });
+
+    admin.contracts.push(contract);
+    // Save the updated admin document
+    await admin.save();
+
+    // Update the contract in associated control panels
+    const updatedControlPanels = await Promise.all(
+      admin.controlPanels.map(async (panelId) => {
+        const panel = await ControlPanel.findById(panelId);
+        if (!panel) {
+          console.warn(`ControlPanel with ID ${panelId} not found`);
+          return null;
+        }
+
+        // Find and update the contract in the control panel
+        const panelContract = panel.contracts.find(
+          (c) => c.contractId === req.params.id
+        );
+        if (panelContract) {
+          Object.assign(panelContract, {
+            companyName: req.body.companyName || panelContract.companyName,
+            startDate: req.body.startDate || panelContract.startDate,
+            endDate: req.body.endDate || panelContract.endDate,
+            contactNumber:
+              req.body.contactNumber || panelContract.contactNumber,
+            amount: req.body.amount || panelContract.amount,
+            assigned:
+              req.body.assigned !== undefined
+                ? req.body.assigned
+                : panelContract.assigned,
+          });
+
+          panel.contracts = panel.contracts.filter((c) => {
+            return c.contractId !== req.params.id;
+          });
+
+          panel.contracts.push(panelContract);
+
+          await panel.save(); // Save updated panel
+        } else {
+          console.warn(`Contract not found in ControlPanel with ID ${panelId}`);
+        }
+
+        return panel;
+      })
+    );
+
+    res.status(200).json(contract);
+  } catch (error) {
+    console.error("Error updating contract:", error.message);
+    res.status(500).send({ error: error.message });
+  }
+};
+
+// ASSIGN CONTRACT
+const assignContract = async (req, res) => {
+  try {
+    const admin = await findAdmin();
+    const { contract, cps } = req.body;
+
+    const targetContract = admin.contracts.find(
+      (c) => c.contractId === contract.contractId
+    );
+    if (!targetContract) return res.status(404).send("Contract not found");
+
+    targetContract.assigned = true;
+    const updatedPanels = await Promise.all(
+      cps.map(async (cpId) => {
+        const panel = await ControlPanel.findById(cpId);
+        if (panel) {
+          panel.contracts.push(targetContract);
+          await panel.save();
+        }
+        return panel;
+      })
+    );
+
+    await saveControlPanels(admin, updatedPanels.filter(Boolean));
+    res.status(200).json(targetContract);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ error: error.message });
+  }
+};
+
+// PAYMENT REQUESTS
 const acceptReq = async (req, res) => {
   try {
     console.log(req.body, req.params.id);
@@ -196,6 +410,10 @@ const getRepById = async (req, res) => {
 };
 
 module.exports = {
+  createContract,
+  deleteContract,
+  updateContract,
+  assignContract,
   getAllRequests,
   getReqById,
   acceptReq,
