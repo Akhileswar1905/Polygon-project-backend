@@ -210,6 +210,7 @@ const generateReport = async (req, res) => {
         const pending = driver.tripDetails.filter(
           (trip) => trip.tripPayment === "pending"
         );
+        console.log(pending);
 
         let amount = 0;
 
@@ -257,7 +258,7 @@ const generateReport = async (req, res) => {
 
     const report = {
       reportId: crypto.randomUUID().toString(),
-      reportDate: formattedDateTime,
+      reportDate: new Date().toISOString().slice(0, 10),
       amount: amount,
       data: drivers,
       cpName: cp.username,
