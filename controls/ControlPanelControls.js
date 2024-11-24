@@ -210,56 +210,28 @@ const generateReport = async (req, res) => {
         const pending = driver.tripDetails.filter(
           (trip) => trip.tripPayment === "pending"
         );
-        console.log(pending);
-
-        let amount = 0;
-
-        pending.forEach((trip) => {
-          amount += parseInt(trip.amount);
-        });
 
         return {
           driverName: item.username,
           phoneNumber: item.phoneNumber,
           vehicleNumber: item.vehicleNumber,
           pendingTrips: pending,
-          totalAmount: amount,
         };
       })
     );
 
-    let amount = 0;
     let allPendingTrips = [];
     drivers.forEach((driver) => {
       driver.pendingTrips.forEach((trip) => {
-        amount += parseInt(trip.amount);
+        trip.driverName = driver.username;
+        trip.vehicleNumber = driver.vehicleNumber;
         allPendingTrips.push(trip);
       });
     });
-    console.log(amount);
-
-    // Get current date and time
-    const now = new Date();
-
-    // Format the date
-    const formattedDate = `${(now.getDate() < 10 ? "0" : "") + now.getDate()}-${
-      (now.getMonth() + 1 < 10 ? "0" : "") + (now.getMonth() + 1)
-    }-${now.getFullYear()}`;
-
-    // Format the time
-    const formattedTime = `${
-      (now.getHours() < 10 ? "0" : "") + now.getHours()
-    }:${(now.getMinutes() < 10 ? "0" : "") + now.getMinutes()}:${
-      (now.getSeconds() < 10 ? "0" : "") + now.getSeconds()
-    }`;
-
-    // Combine date and time
-    const formattedDateTime = `${formattedDate}, ${formattedTime}`;
 
     const report = {
       reportId: crypto.randomUUID().toString(),
       reportDate: new Date().toISOString().slice(0, 10),
-      amount: amount,
       data: drivers,
       cpName: cp.username,
       cpId: cp._id,

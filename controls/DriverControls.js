@@ -72,7 +72,7 @@ const getDriverByName = async (req, res) => {
 const updateTripDetails = async (req, res) => {
   try {
     const person = await Driver.findOne({ phoneNumber: req.body.phoneNumber });
-    console.log(person);
+    console.log(req.body);
     if (!person) {
       return res.status(404).json({ message: "Driver not found" });
     }
