@@ -83,8 +83,7 @@ const updateTripDetails = async (req, res) => {
       tripTime: req.body.tripTime,
       tripPayment: "pending",
       status: "not-allowed",
-      contract: req.body.contractId,
-      amount: req.body.payPerRide,
+      contract: req.body.contract,
       phoneNumber: person.phoneNumber,
     });
 
