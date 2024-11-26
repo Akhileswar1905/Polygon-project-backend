@@ -329,16 +329,30 @@ const rejectReq = async (req, res) => {
   try {
     const admin = await Admin.find({});
     const requests = admin[0].payReqs;
-    const req = requests.find((req) => req.reportId === req.params.id);
-    req.status = "Rejected";
-    admin[0].payReqs = admin[0].payReqs.filter(
-      (req) => req.reportId === req.params.id
+    const request = requests.find(
+      (request) => request.reportId === req.params.id
     );
-    const reps = admin[0].payReps;
-    await admin.save();
-    res.status(200).json(req);
+    request.status = "Rejected";
+    const cp = await ControlPanel.findById(request.cpId);
+    cp.reports = cp.reports.filter(
+      (request) => request.reportId !== req.params.id
+    );
+    await cp.save();
+
+    cp.reports.push(request);
+    await cp.save();
+
+    admin[0].payReqs = admin[0].payReqs.filter(
+      (request) => request.reportId !== req.params.id
+    );
+
+    admin[0].payReqs.push(request);
+
+    await admin[0].save();
+    res.status(200).json(admin[0].payReqs);
   } catch (error) {
     res.status(500).send(error.message);
+    console.log(error.message);
   }
 };
 

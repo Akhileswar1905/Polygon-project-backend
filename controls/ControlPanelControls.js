@@ -299,11 +299,17 @@ const acceptUpdate = async (req, res) => {
       { $set: { "updates.$.trip.status": "allowed" } }
     );
 
-    await Driver.findOneAndUpdate(
+    const updatedDriver = await Driver.findOneAndUpdate(
       { phoneNumber: phoneNumber, "tripDetails.tripID": tripId },
       { $set: { "tripDetails.$.status": "allowed" } }
     );
     const cp = await ControlPanel.findOne({ _id: cpId });
+
+    cp.drivers = cp.drivers.filter(
+      (driver) => driver._id.toString() === updatedDriver._id.toString()
+    );
+    cp.drivers.push(updatedDriver);
+    await cp.save();
 
     res.status(200).json(cp.updates);
   } catch (error) {
