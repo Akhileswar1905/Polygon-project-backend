@@ -223,8 +223,9 @@ const generateReport = async (req, res) => {
     let allPendingTrips = [];
     drivers.forEach((driver) => {
       driver.pendingTrips.forEach((trip) => {
-        trip.driverName = driver.username;
+        trip.driverName = driver.driverName;
         trip.vehicleNumber = driver.vehicleNumber;
+        console.log(trip);
         allPendingTrips.push(trip);
       });
     });
@@ -266,8 +267,6 @@ const payRequest = async (req, res) => {
   try {
     const admin = await Admin.find({});
     admin[0].payReqs.push(req.body);
-    const cp = await ControlPanel.findById(req.body.cpId);
-    await cp.save();
     await admin[0].save();
     res.status(200).json(admin[0]);
   } catch (error) {

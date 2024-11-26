@@ -265,6 +265,8 @@ const acceptReq = async (req, res) => {
       (request) => request.reportId !== req.params.id
     );
 
+    admin[0].payReqs.push(request);
+
     await admin[0].save();
 
     // Update CP
@@ -305,7 +307,7 @@ const acceptReq = async (req, res) => {
       await rider.save();
 
       cp.drivers = cp.drivers.filter(
-        (driver) => driver._id.toString() === rider._id.toString()
+        (driver) => driver._id.toString() !== rider._id.toString()
       );
       await cp.save();
       cp.drivers.push(rider);
