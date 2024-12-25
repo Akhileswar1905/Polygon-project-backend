@@ -89,8 +89,6 @@ const updateTripDetails = async (req, res) => {
 
     await person.save();
 
-    await cp.save();
-
     res.status(200).json(person);
   } catch (error) {
     console.log(error);
