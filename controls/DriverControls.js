@@ -89,19 +89,6 @@ const updateTripDetails = async (req, res) => {
 
     await person.save();
 
-    const cpId = person.controlPanel;
-    const cp = await ControlPanel.findById(cpId);
-
-    if (!cp) {
-      return res.status(404).json({ message: "ControlPanel not found" });
-    }
-
-    cp.drivers = cp.drivers.filter(
-      (driver) => driver._id.toString() !== person._id.toString()
-    );
-
-    cp.drivers.push(person);
-
     await cp.save();
 
     res.status(200).json(person);

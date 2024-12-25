@@ -1,10 +1,10 @@
-const express = require("express");
 const ControlPanel = require("../models/ControlPanel");
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const Driver = require("../models/Driver");
 const { acceptReq } = require("./AdminControls");
 
+// Fetching all the control panels
 const getAllCps = async (req, res) => {
   try {
     const persons = await ControlPanel.find({});
@@ -15,6 +15,7 @@ const getAllCps = async (req, res) => {
   }
 };
 
+// Fetch only one control panel
 const getCP = async (req, res) => {
   try {
     const cp = await ControlPanel.findById(req.params.id);
@@ -24,6 +25,7 @@ const getCP = async (req, res) => {
   }
 };
 
+// Signup for the control panel
 const Signup = async (req, res) => {
   try {
     const hashPassword = bcrypt.hashSync(req.body.password, 10);
@@ -40,6 +42,7 @@ const Signup = async (req, res) => {
   }
 };
 
+// Login for the control panel
 const Login = async (req, res) => {
   try {
     const user = await ControlPanel.findOne({
@@ -59,6 +62,7 @@ const Login = async (req, res) => {
   }
 };
 
+// Delete all the control panels
 const deleteCps = async (req, res) => {
   try {
     const cps = await ControlPanel.deleteMany({});
@@ -68,6 +72,7 @@ const deleteCps = async (req, res) => {
   }
 };
 
+// Delete a control panel by id
 const deleteCpById = async (req, res) => {
   try {
     const cp = await ControlPanel.findByIdAndDelete(req.params.id);
@@ -96,6 +101,7 @@ const deleteCpById = async (req, res) => {
   }
 };
 
+// Accept a driver request
 const acceptDriver = async (req, res) => {
   try {
     const { id } = req.body;
@@ -105,29 +111,21 @@ const acceptDriver = async (req, res) => {
     user.requestStatus = "accepted";
     await user.save();
     const cp = await ControlPanel.findById(user.controlPanel);
-    console.log(user.controlPanel);
     cp.requests = cp.requests.filter(
       (request) => String(request._id) !== String(user._id)
     );
 
-    cp.drivers.push(user);
+    cp.drivers.push(user._id);
     await cp.save();
 
-    const admin = await Admin.find({});
-    admin[0].controlPanels = admin[0].controlPanels.filter(
-      (panel) => panel._id.toString() === cp._id.toString()
-    );
-
-    admin[0].controlPanels.push(cp);
-    await admin[0].save();
-
-    res.status(200).json({ driver: user, ControlPanel: cp });
+    res.status(200).json(user);
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
   }
 };
 
+// Reject a driver request
 const rejectDriver = async (req, res) => {
   try {
     const { id } = req.body;
@@ -139,13 +137,14 @@ const rejectDriver = async (req, res) => {
       (request) => String(request._id) !== String(user._id)
     );
     await cp.save();
-    res.status(200).json({ driver: user, ControlPanel: cp });
+    res.status(200).json({ user });
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
   }
 };
 
+// Create a new contract
 const createContract = async (req, res) => {
   try {
     const cp = await ControlPanel.findById(req.body.id);
@@ -166,10 +165,10 @@ const createContract = async (req, res) => {
   }
 };
 
+// Assign a contract to a driver
 const assignContract = async (req, res) => {
   try {
     const { contract, drivers } = req.body;
-    console.log(contract, drivers);
     const driver = await Driver.findById(drivers[0]);
     const cp = await ControlPanel.findById(driver.controlPanel);
 
@@ -183,23 +182,17 @@ const assignContract = async (req, res) => {
         const driver = await Driver.findById(driverId);
         driver.contractDetails.push(targetContract);
         await driver.save();
-
-        cp.drivers = cp.drivers.filter(
-          (d) => d._id.toString() !== driver._id.toString()
-        );
-        cp.drivers.push(driver);
-        await cp.save();
-
         return driver;
       })
     );
     res.status(200).json(updateDrivers);
   } catch (error) {
     console.error(error);
-    res.status(500).send(error.message); // Error handling
+    res.status(500).send(error.message);
   }
 };
 
+// Generate a report for all pending trips
 const generateReport = async (req, res) => {
   try {
     const cp = await ControlPanel.findById(req.params.id);
@@ -225,7 +218,6 @@ const generateReport = async (req, res) => {
       driver.pendingTrips.forEach((trip) => {
         trip.driverName = driver.driverName;
         trip.vehicleNumber = driver.vehicleNumber;
-        console.log(trip);
         allPendingTrips.push(trip);
       });
     });
@@ -249,6 +241,7 @@ const generateReport = async (req, res) => {
   }
 };
 
+// Delete a report
 const deleteReport = async (req, res) => {
   try {
     const cp = await ControlPanel.findById(req.params.id);
@@ -263,6 +256,7 @@ const deleteReport = async (req, res) => {
   }
 };
 
+// Send a payment request to the admin
 const payRequest = async (req, res) => {
   try {
     const admin = await Admin.find({});
@@ -275,6 +269,7 @@ const payRequest = async (req, res) => {
   }
 };
 
+// Update request from the driver to CP
 const updateReq = async (req, res) => {
   try {
     console.log(req.body);
@@ -288,8 +283,10 @@ const updateReq = async (req, res) => {
   }
 };
 
+// Accept the update request of the driver
 const acceptUpdate = async (req, res) => {
   try {
+    console.log(req.body);
     const cpId = req.body.cpId;
     const tripId = req.body.trip.tripID;
     const phoneNumber = req.body.phoneNumber;
@@ -312,6 +309,23 @@ const acceptUpdate = async (req, res) => {
   }
 };
 
+// Fetch all the drivers of the CP
+const allDrivers = async (req, res) => {
+  try {
+    const cp = await ControlPanel.findById(req.params.id);
+    let drivers = [];
+    for (const d of cp.drivers) {
+      const driver = await Driver.findById(d);
+      drivers.push(driver);
+    }
+
+    res.status(200).json(drivers);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+};
+
 module.exports = {
   getAllCps,
   getCP,
@@ -328,4 +342,5 @@ module.exports = {
   payRequest,
   updateReq,
   acceptUpdate,
+  allDrivers,
 };

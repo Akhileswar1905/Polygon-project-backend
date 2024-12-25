@@ -18,6 +18,7 @@ const {
   deleteCpById,
   updateReq,
   acceptUpdate,
+  allDrivers,
 } = require("../controls/ControlPanelControls");
 const router = express.Router();
 
@@ -50,5 +51,7 @@ router.post("/payreq", payRequest);
 router.post("/update-request", updateReq);
 
 router.post("/accept-update-request", acceptUpdate);
+
+router.get("/all-drivers/:id", allDrivers);
 
 module.exports = router;

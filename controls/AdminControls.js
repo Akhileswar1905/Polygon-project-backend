@@ -218,14 +218,6 @@ const assignContract = async (req, res) => {
         if (panel) {
           // Assign contract to the panel
           panel.contracts.push(targetContract);
-
-          // Remove from admin's controlPanels and re-add updated panel
-          admin.controlPanels = admin.controlPanels.filter(
-            (cp) => cp._id.toString() !== panel._id.toString()
-          );
-          admin.controlPanels.push(panel);
-
-          // Save both panel and admin
           await panel.save();
         }
         return panel;
@@ -250,74 +242,107 @@ const assignContract = async (req, res) => {
 // PAYMENT REQUESTS
 const acceptReq = async (req, res) => {
   try {
-    console.log(req.body, req.params.id);
     const admin = await Admin.find({});
     const requests = admin[0].payReqs;
-    console.log(requests);
     const request = requests.find(
       (request) => request.reportId === req.params.id
     );
     request.status = "Done";
-    console.log(request);
+    const { validTrips, inValidTrips, cpId, reportId, reportDate } = req.body;
+    const report = {
+      validTrips: validTrips,
+      inValidTrips: inValidTrips,
+      cpId: cpId,
+      reportId: reportId,
+      reportDate: reportDate,
+    };
 
     // Update Admin
     admin[0].payReqs = admin[0].payReqs.filter(
       (request) => request.reportId !== req.params.id
     );
-
-    admin[0].payReqs.push(request);
-
+    admin[0].payReqs.push(report);
     await admin[0].save();
+    //----------------------------------------------------------------
 
     // Update CP
     const cp = await ControlPanel.findById(request.cpId);
     cp.reports = cp.reports.filter(
       (request) => request.reportId !== req.params.id
     );
+    cp.reports.push(report);
     await cp.save();
+    //----------------------------------------------------------------
 
     // Update driver
-    const data = request.data;
+    const data = validTrips;
+    // Accept all the valid trips
+    for (const trip of data) {
+      const driver = await Driver.findOne({ phoneNumber: trip.phoneNumber });
 
-    // Loop through each driver in the request
-    for (const driver of data) {
-      const pendingTripsIds = driver.pendingTrips.map((trip) => trip.tripID);
-
-      // Update tripPayment for each pending trip of the driver
-      for (const ride of pendingTripsIds) {
-        const updatedDriver = await Driver.findOneAndUpdate(
-          { phoneNumber: driver.phoneNumber, "tripDetails.tripID": ride },
-          { $set: { "tripDetails.$.tripPayment": "Done" } }
-        );
-        if (!updatedDriver) {
-          return res.status(404).json({ message: "Driver not found" });
-        }
+      if (!driver) {
+        console.error(`Driver not found for phone number: ${trip.phoneNumber}`);
+        continue;
       }
 
-      // Update earnings for the driver
-      const rider = await Driver.findOne({ phoneNumber: driver.phoneNumber });
-      for (const ride of pendingTripsIds) {
-        const trip = rider.tripDetails.find((trip) => trip.tripID === ride);
-        rider.earnings.push({
-          tripId: ride,
-          amount: parseInt(trip.amount),
-          tripDate: trip.tripDate,
-        });
-      }
-      await rider.save();
-
-      cp.drivers = cp.drivers.filter(
-        (driver) => driver._id.toString() !== rider._id.toString()
+      // Locate the trip detail in driver.tripDetails
+      const tripIndex = driver.tripDetails.findIndex(
+        (tripDetail) => tripDetail.tripID === trip.tripID
       );
-      await cp.save();
-      cp.drivers.push(rider);
-      await cp.save();
+
+      if (tripIndex === -1) {
+        console.error(`Trip not found for tripID: ${trip.tripID}`);
+        continue;
+      }
+
+      // Update the tripPayment
+      driver.tripDetails[tripIndex].tripPayment = "Done";
+
+      // Check if the trip is already added to earnings
+      const isTripAlreadyAdded = driver.earnings.some(
+        (earning) => earning.tripID === trip.tripID
+      );
+      if (!isTripAlreadyAdded) {
+        driver.earnings.push({ tripID: trip.tripID });
+      }
+
+      // Explicitly mark arrays as modified
+      driver.markModified(`tripDetails.${tripIndex}`);
+      driver.markModified("earnings");
+
+      // Save the driver document
+      await driver.save();
     }
 
-    admin[0].payReps.push(request);
-    await admin[0].save();
-    cp.reports.push(request);
-    await cp.save();
+    // Reject all the invalid trips
+    for (const trip of inValidTrips) {
+      const driver = await Driver.findOne({ phoneNumber: trip.phoneNumber });
+
+      if (!driver) {
+        console.error(`Driver not found for phone number: ${trip.phoneNumber}`);
+        continue;
+      }
+
+      // Locate the trip detail in driver.tripDetails
+      const tripIndex = driver.tripDetails.findIndex(
+        (tripDetail) => tripDetail.tripID === trip.tripID
+      );
+
+      if (tripIndex === -1) {
+        console.error(`Trip not found for tripID: ${trip.tripID}`);
+        continue;
+      }
+
+      // Update the tripPayment
+      driver.tripDetails[tripIndex].tripPayment = "Rejected";
+
+      // Explicitly mark the modified field
+      driver.markModified(`tripDetails.${tripIndex}`);
+
+      // Save the driver document
+      await driver.save();
+    }
+
     res.status(200).json(request);
   } catch (error) {
     res.status(500).send(error.message);
