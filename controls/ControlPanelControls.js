@@ -34,7 +34,7 @@ const Signup = async (req, res) => {
     const admin = await Admin.find({});
     console.log(admin[0]);
     const adm = admin[0];
-    adm.controlPanels.push(user);
+    adm.controlPanels.push(user._id);
     await adm.save();
     res.status(200).json(user);
   } catch (error) {
