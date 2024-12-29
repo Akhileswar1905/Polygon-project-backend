@@ -25,11 +25,11 @@ router.post("/auth", sendOTP);
 // OTP Verification
 router.post("/auth/verify", verifyOTP);
 
-// Get driver by ID
-router.get("/:id", getDriverById);
-
 // Get driver by phoneNumber
 router.get("/:phoneNumber", getDriverByPhoneNumber);
+
+// Get driver by ID
+router.get("/id/:id", getDriverById);
 
 // Get driver by name
 router.get("/name/:username", getDriverByName);
