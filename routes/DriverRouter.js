@@ -8,6 +8,7 @@ const {
   verifyOTP,
   updateTripDetails,
   deleteAllDrivers,
+  getDriverById,
   getDriverByPhoneNumber,
   getDriverByName,
   updateTrip,
@@ -23,6 +24,9 @@ router.post("/auth", sendOTP);
 
 // OTP Verification
 router.post("/auth/verify", verifyOTP);
+
+// Get driver by ID
+router.get("/:id", getDriverById);
 
 // Get driver by phoneNumber
 router.get("/:phoneNumber", getDriverByPhoneNumber);

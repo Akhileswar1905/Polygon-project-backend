@@ -255,6 +255,7 @@ const acceptReq = async (req, res) => {
       cpId: cpId,
       reportId: reportId,
       reportDate: reportDate,
+      status: "Done",
     };
 
     // Update Admin
@@ -303,7 +304,11 @@ const acceptReq = async (req, res) => {
         (earning) => earning.tripID === trip.tripID
       );
       if (!isTripAlreadyAdded) {
-        driver.earnings.push({ tripID: trip.tripID });
+        driver.earnings.push({
+          tripID: trip.tripID,
+          tripDate: trip.tripDate,
+          paidOn: new Date().toISOString().slice(0, 10),
+        });
       }
 
       // Explicitly mark arrays as modified

@@ -199,15 +199,15 @@ const generateReport = async (req, res) => {
     const data = cp.drivers;
     const drivers = await Promise.all(
       data.map(async (item) => {
-        const driver = await Driver.findById(item._id);
+        const driver = await Driver.findById(item);
         const pending = driver.tripDetails.filter(
           (trip) => trip.tripPayment === "pending"
         );
 
         return {
-          driverName: item.username,
-          phoneNumber: item.phoneNumber,
-          vehicleNumber: item.vehicleNumber,
+          driverName: driver.username,
+          phoneNumber: driver.phoneNumber,
+          vehicleNumber: driver.vehicleNumber,
           pendingTrips: pending,
         };
       })
